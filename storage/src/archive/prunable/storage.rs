@@ -14,12 +14,6 @@ use prometheus_client::metrics::{counter::Counter, gauge::Gauge};
 use std::collections::{BTreeMap, BTreeSet};
 use tracing::debug;
 
-/// Location of a record in `Journal`.
-struct Location {
-    offset: u32,
-    len: u32,
-}
-
 /// Record stored in the `Archive`.
 struct Record<K: Array, V: Codec> {
     index: u64,
@@ -59,6 +53,21 @@ impl<K: Array, V: Codec> EncodeSize for Record<K, V> {
     }
 }
 
+#[cfg(feature = "arbitrary")]
+impl<K: Array, V: Codec> arbitrary::Arbitrary<'_> for Record<K, V>
+where
+    K: for<'a> arbitrary::Arbitrary<'a>,
+    V: for<'a> arbitrary::Arbitrary<'a>,
+{
+    fn arbitrary(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<Self> {
+        Ok(Self::new(
+            u.arbitrary::<u64>()?,
+            u.arbitrary::<K>()?,
+            u.arbitrary::<V>()?,
+        ))
+    }
+}
+
 /// Implementation of `Archive` storage.
 pub struct Archive<T: Translator, E: Storage + Metrics, K: Array, V: Codec> {
     items_per_section: u64,
@@ -72,7 +81,7 @@ pub struct Archive<T: Translator, E: Storage + Metrics, K: Array, V: Codec> {
     // to its corresponding index. To avoid iterating over this keys map during pruning, we map said
     // indexes to their locations in the journal.
     keys: Index<T, u64>,
-    indices: BTreeMap<u64, Location>,
+    indices: BTreeMap<u64, u32>,
     intervals: RMap,
 
     items_tracked: Gauge,
@@ -117,10 +126,10 @@ impl<T: Translator, E: Storage + Metrics, K: Array, V: Codec> Archive<T, E, K, V
             pin_mut!(stream);
             while let Some(result) = stream.next().await {
                 // Extract key from record
-                let (_, offset, len, data) = result?;
+                let (_, offset, _, data) = result?;
 
                 // Store index
-                indices.insert(data.index, Location { offset, len });
+                indices.insert(data.index, offset);
 
                 // Store index in keys
                 keys.insert(&data.key, data.index);
@@ -181,17 +190,14 @@ impl<T: Translator, E: Storage + Metrics, K: Array, V: Codec> Archive<T, E, K, V
         self.gets.inc();
 
         // Get index location
-        let location = match self.indices.get(&index) {
-            Some(offset) => offset,
+        let offset = match self.indices.get(&index) {
+            Some(offset) => *offset,
             None => return Ok(None),
         };
 
         // Fetch item from disk
         let section = self.section(index);
-        let record = self
-            .journal
-            .get_exact(section, location.offset, location.len)
-            .await?;
+        let record = self.journal.get(section, offset).await?;
         Ok(Some(record.value))
     }
 
@@ -209,12 +215,9 @@ impl<T: Translator, E: Storage + Metrics, K: Array, V: Codec> Archive<T, E, K, V
             }
 
             // Fetch item from disk
-            let location = self.indices.get(index).ok_or(Error::RecordCorrupted)?;
+            let offset = *self.indices.get(index).ok_or(Error::RecordCorrupted)?;
             let section = self.section(*index);
-            let record = self
-                .journal
-                .get_exact(section, location.offset, location.len)
-                .await?;
+            let record = self.journal.get(section, offset).await?;
 
             // Get key from item
             if record.key.as_ref() == key.as_ref() {
@@ -306,10 +309,10 @@ impl<T: Translator, E: Storage + Metrics, K: Array, V: Codec> crate::archive::Ar
         // Store item in journal
         let record = Record::new(index, key.clone(), data);
         let section = self.section(index);
-        let (offset, len) = self.journal.append(section, record).await?;
+        let (offset, _) = self.journal.append(section, record).await?;
 
         // Store index
-        self.indices.insert(index, Location { offset, len });
+        self.indices.insert(index, offset);
 
         // Store interval
         self.intervals.insert(index);
@@ -372,11 +375,18 @@ impl<T: Translator, E: Storage + Metrics, K: Array, V: Codec> crate::archive::Ar
         self.intervals.last_index()
     }
 
-    async fn close(self) -> Result<(), Error> {
-        self.journal.close().await.map_err(Error::Journal)
-    }
-
     async fn destroy(self) -> Result<(), Error> {
         self.journal.destroy().await.map_err(Error::Journal)
+    }
+}
+
+#[cfg(all(test, feature = "arbitrary"))]
+mod conformance {
+    use super::*;
+    use commonware_codec::conformance::CodecConformance;
+    use commonware_utils::sequence::U64;
+
+    commonware_conformance::conformance_tests! {
+        CodecConformance<Record<U64, Vec<u8>>>
     }
 }

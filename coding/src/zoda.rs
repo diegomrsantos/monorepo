@@ -113,23 +113,24 @@
 //! ## Decoding
 //!
 //! 1. Given n checked shards, you have n S encoded rows, which can be Reed-Solomon decoded.
-use crate::{
-    field::F,
-    poly::{EvaluationVector, Matrix},
-    Config, Scheme, ValidatingScheme,
-};
+
+use crate::{Config, Scheme, ValidatingScheme};
 use bytes::BufMut;
 use commonware_codec::{Encode, EncodeSize, FixedSize, RangeCfg, Read, ReadExt, Write};
 use commonware_cryptography::{
     transcript::{Summary, Transcript},
     Hasher,
 };
+use commonware_math::{
+    fields::goldilocks::F,
+    ntt::{EvaluationVector, Matrix},
+};
+use commonware_parallel::Strategy;
 use commonware_storage::mmr::{
     mem::DirtyMmr, verification::multi_proof, Error as MmrError, Location, Proof, StandardHasher,
 };
 use futures::executor::block_on;
 use rand::seq::SliceRandom as _;
-use rayon::{iter::ParallelIterator, prelude::IntoParallelIterator, ThreadPoolBuilder};
 use std::{marker::PhantomData, sync::Arc};
 use thiserror::Error;
 
@@ -182,9 +183,18 @@ fn collect_u64_le(max_length: usize, data: impl Iterator<Item = u64>) -> Vec<u8>
     out
 }
 
+fn row_digest<H: Hasher>(row: &[F]) -> H::Digest {
+    let mut h = H::new();
+    for x in row {
+        h.update(&x.to_le_bytes());
+    }
+    h.finalize()
+}
+
 mod topology {
     use super::Error;
-    use crate::{field::F, Config};
+    use crate::Config;
+    use commonware_math::fields::goldilocks::F;
     use commonware_utils::BigRationalExt as _;
     use num_rational::BigRational;
 
@@ -375,6 +385,22 @@ impl<H: Hasher> Read for Shard<H> {
     }
 }
 
+#[cfg(feature = "arbitrary")]
+impl<H: Hasher> arbitrary::Arbitrary<'_> for Shard<H>
+where
+    H::Digest: for<'a> arbitrary::Arbitrary<'a>,
+{
+    fn arbitrary(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<Self> {
+        Ok(Self {
+            data_bytes: u.arbitrary::<u32>()? as usize,
+            root: u.arbitrary()?,
+            inclusion_proof: u.arbitrary()?,
+            rows: u.arbitrary()?,
+            checksum: Arc::new(u.arbitrary()?),
+        })
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ReShard<H: Hasher> {
     inclusion_proof: Proof<H::Digest>,
@@ -413,8 +439,22 @@ impl<H: Hasher> Read for ReShard<H> {
         let max_data_els = F::bits_to_elements(max_data_bits).max(1);
         Ok(Self {
             // Worst case: every row is one data element, and the sample size is all rows.
+            // TODO (#2506): use correct bounds on inclusion proof size
             inclusion_proof: Read::read_cfg(buf, &max_data_els)?,
             shard: Read::read_cfg(buf, &max_data_els)?,
+        })
+    }
+}
+
+#[cfg(feature = "arbitrary")]
+impl<H: Hasher> arbitrary::Arbitrary<'_> for ReShard<H>
+where
+    H::Digest: for<'a> arbitrary::Arbitrary<'a>,
+{
+    fn arbitrary(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<Self> {
+        Ok(Self {
+            inclusion_proof: u.arbitrary()?,
+            shard: u.arbitrary()?,
         })
     }
 }
@@ -514,7 +554,7 @@ impl<H: Hasher> CheckingData<H> {
             these_shuffled_indices
                 .iter()
                 .zip(reshard.shard.iter())
-                .map(|(&i, row)| (F::slice_digest::<H>(row), i))
+                .map(|(&i, row)| (row_digest::<H>(row), i))
                 .collect::<Vec<_>>()
         };
         if !reshard.inclusion_proof.verify_multi_inclusion(
@@ -554,6 +594,7 @@ pub enum Error {
     FailedToCreateInclusionProof(MmrError),
 }
 
+// TODO (#2506): rename this to `_COMMONWARE_CODING_ZODA`
 const NAMESPACE: &[u8] = b"commonware-zoda";
 
 #[derive(Clone, Copy)]
@@ -583,7 +624,7 @@ impl<H: Hasher> Scheme for Zoda<H> {
     fn encode(
         config: &Config,
         data: impl bytes::Buf,
-        concurrency: usize,
+        strategy: &impl Strategy,
     ) -> Result<(Self::Commitment, Vec<Self::Shard>), Self::Error> {
         // Step 1: arrange the data as a matrix.
         let data_bytes = data.remaining();
@@ -604,24 +645,11 @@ impl<H: Hasher> Scheme for Zoda<H> {
         // Step 3: Commit to the rows of the data.
         let mut hasher = StandardHasher::<H>::new();
         let mut mmr = DirtyMmr::new();
-        if concurrency > 1 {
-            let pool = ThreadPoolBuilder::new()
-                .num_threads(concurrency)
-                .build()
-                .expect("failed to build thread pool");
-            let row_hashes = pool.install(|| {
-                (0..encoded_data.rows())
-                    .into_par_iter()
-                    .map(|i| F::slice_digest::<H>(&encoded_data[i]))
-                    .collect::<Vec<_>>()
-            });
-            for hash in &row_hashes {
-                mmr.add(&mut hasher, hash);
-            }
-        } else {
-            for row in encoded_data.iter() {
-                mmr.add(&mut hasher, &F::slice_digest::<H>(row));
-            }
+        let row_hashes = strategy.map_collect_vec(0..encoded_data.rows(), |i| {
+            row_digest::<H>(&encoded_data[i])
+        });
+        for hash in &row_hashes {
+            mmr.add(&mut hasher, hash);
         }
         let mmr = mmr.merkleize(&mut hasher, None);
         let root = *mmr.root();
@@ -703,7 +731,7 @@ impl<H: Hasher> Scheme for Zoda<H> {
         _commitment: &Self::Commitment,
         checking_data: Self::CheckingData,
         shards: &[Self::CheckedShard],
-        _concurrency: usize,
+        _strategy: &impl Strategy,
     ) -> Result<Vec<u8>, Self::Error> {
         let Topology {
             encoded_rows,
@@ -751,8 +779,9 @@ mod tests {
     use super::*;
     use crate::{CodecConfig, Config};
     use commonware_cryptography::Sha256;
+    use commonware_parallel::Sequential;
 
-    const CONCURRENCY: usize = 1;
+    const STRATEGY: Sequential = Sequential;
 
     #[test]
     fn topology_reckon_handles_small_extra_shards() {
@@ -788,7 +817,7 @@ mod tests {
         let data = vec![0xAA; 64];
 
         let (commitment, shards) =
-            Zoda::<Sha256>::encode(&config, data.as_slice(), CONCURRENCY).unwrap();
+            Zoda::<Sha256>::encode(&config, data.as_slice(), &STRATEGY).unwrap();
         let shard = shards.into_iter().next().unwrap();
 
         let (_, _, reshard) = Zoda::<Sha256>::reshard(&config, &commitment, 0, shard).unwrap();
@@ -814,7 +843,7 @@ mod tests {
             extra_shards: 0,
         };
         let data = b"duplicate shard coverage";
-        let (commitment, shards) = Zoda::<Sha256>::encode(&config, &data[..], CONCURRENCY).unwrap();
+        let (commitment, shards) = Zoda::<Sha256>::encode(&config, &data[..], &STRATEGY).unwrap();
         let shard0 = shards[0].clone();
         let (checking_data, checked_shard0, _reshard0) =
             Zoda::<Sha256>::reshard(&config, &commitment, 0, shard0).unwrap();
@@ -824,12 +853,23 @@ mod tests {
         };
         let shards = vec![checked_shard0, duplicate];
         let result =
-            Zoda::<Sha256>::decode(&config, &commitment, checking_data, &shards, CONCURRENCY);
+            Zoda::<Sha256>::decode(&config, &commitment, checking_data, &shards, &STRATEGY);
         match result {
             Err(Error::InsufficientUniqueRows(actual, expected)) => {
                 assert!(actual < expected);
             }
             other => panic!("expected insufficient unique rows error, got {other:?}"),
+        }
+    }
+
+    #[cfg(feature = "arbitrary")]
+    mod conformance {
+        use super::*;
+        use commonware_codec::conformance::CodecConformance;
+
+        commonware_conformance::conformance_tests! {
+            CodecConformance<Shard<Sha256>>,
+            CodecConformance<ReShard<Sha256>>,
         }
     }
 }

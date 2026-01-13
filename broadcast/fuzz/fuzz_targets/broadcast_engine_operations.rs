@@ -10,11 +10,10 @@ use commonware_codec::{Encode, RangeCfg, ReadRangeExt};
 use commonware_cryptography::{
     ed25519::{PrivateKey, PublicKey},
     sha256::Digest,
-    Committable, Digestible, Hasher, PrivateKeyExt as _, Sha256, Signer,
+    Committable, Digestible, Hasher, Sha256, Signer,
 };
 use commonware_p2p::{simulated::Network, Recipients};
-use commonware_runtime::{deterministic, Clock, Metrics, Runner};
-use governor::Quota;
+use commonware_runtime::{deterministic, Clock, Metrics, Quota, Runner};
 use libfuzzer_sys::fuzz_target;
 use rand::{seq::SliceRandom, SeedableRng};
 use std::{collections::BTreeMap, num::NonZeroU32, time::Duration};

@@ -24,6 +24,7 @@ use crate::Hasher;
 use blake3::Hash;
 use bytes::{Buf, BufMut};
 use commonware_codec::{Error as CodecError, FixedSize, Read, ReadExt, Write};
+use commonware_math::algebra::Random;
 use commonware_utils::{hex, Array, Span};
 use core::{
     fmt::{Debug, Display},
@@ -56,10 +57,6 @@ impl Clone for Blake3 {
 
 impl Hasher for Blake3 {
     type Digest = Digest;
-
-    const EMPTY: Self::Digest = Digest(hex!(
-        "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262"
-    ));
 
     fn update(&mut self, message: &[u8]) -> &mut Self {
         #[cfg(not(feature = "parallel"))]
@@ -161,7 +158,11 @@ impl Display for Digest {
 }
 
 impl crate::Digest for Digest {
-    fn random<R: CryptoRngCore>(rng: &mut R) -> Self {
+    const EMPTY: Self = Self([0u8; DIGEST_LENGTH]);
+}
+
+impl Random for Digest {
+    fn random(mut rng: impl CryptoRngCore) -> Self {
         let mut array = [0u8; DIGEST_LENGTH];
         rng.fill_bytes(&mut array);
         Self(array)
@@ -208,14 +209,6 @@ mod tests {
     #[test]
     fn test_blake3_len() {
         assert_eq!(Digest::SIZE, DIGEST_LENGTH);
-    }
-
-    #[test]
-    fn test_blake3_empty() {
-        let empty_digest = Blake3::EMPTY;
-        let expected_digest = Blake3::new().finalize();
-
-        assert_eq!(empty_digest, expected_digest);
     }
 
     #[test]

@@ -110,6 +110,19 @@ impl<D: Digest> Default for Proof<D> {
     }
 }
 
+#[cfg(feature = "arbitrary")]
+impl<D: Digest> arbitrary::Arbitrary<'_> for Proof<D>
+where
+    D: for<'a> arbitrary::Arbitrary<'a>,
+{
+    fn arbitrary(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<Self> {
+        Ok(Self {
+            size: u.arbitrary()?,
+            digests: u.arbitrary()?,
+        })
+    }
+}
+
 impl<D: Digest> Proof<D> {
     /// Return true if this proof proves that `element` appears at location `loc` within the MMR
     /// with root digest `root`.
@@ -1070,7 +1083,7 @@ mod tests {
                 let proof = mmr.range_proof(range).unwrap();
 
                 let expected_size = proof.encode_size();
-                let serialized_proof = proof.encode().freeze();
+                let serialized_proof = proof.encode();
                 assert_eq!(
                     serialized_proof.len(),
                     expected_size,
@@ -1085,7 +1098,7 @@ mod tests {
 
                 // Remove one byte from the end of the serialized
                 // proof and confirm it fails to deserialize.
-                let serialized_proof = proof.encode().freeze();
+                let serialized_proof = proof.encode();
                 let serialized_proof: Bytes = serialized_proof.slice(0..serialized_proof.len() - 1);
                 assert!(
                     Proof::<Digest>::decode_cfg(serialized_proof, &max_digests).is_err(),
@@ -1094,9 +1107,9 @@ mod tests {
 
                 // Add 1 byte of extra data to the end of the serialized
                 // proof and confirm it fails to deserialize.
-                let mut serialized_proof = proof.encode();
+                let mut serialized_proof = proof.encode_mut();
                 serialized_proof.extend_from_slice(&[0; 10]);
-                let serialized_proof = serialized_proof.freeze();
+                let serialized_proof = serialized_proof;
 
                 assert!(
                     Proof::<Digest>::decode_cfg(serialized_proof, &max_digests).is_err(),
@@ -1105,7 +1118,7 @@ mod tests {
 
                 // Confirm deserialization fails when max length is exceeded.
                 if max_digests > 0 {
-                    let serialized_proof = proof.encode().freeze();
+                    let serialized_proof = proof.encode();
                     assert!(
                         Proof::<Digest>::decode_cfg(serialized_proof, &(max_digests - 1)).is_err(),
                         "proof should not deserialize with max length exceeded"
@@ -1610,6 +1623,17 @@ mod tests {
 
             let result = nodes_required_for_multi_proof(Position::new(size), &[loc]);
             assert!(matches!(result, Err(Error::InvalidSize(s)) if s == size));
+        }
+    }
+
+    #[cfg(feature = "arbitrary")]
+    mod conformance {
+        use super::*;
+        use commonware_codec::conformance::CodecConformance;
+        use commonware_cryptography::sha256::Digest as Sha256Digest;
+
+        commonware_conformance::conformance_tests! {
+            CodecConformance<Proof<Sha256Digest>>,
         }
     }
 }
