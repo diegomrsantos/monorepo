@@ -14,6 +14,119 @@ module tests_n6f1b0_failures {
         INVALID_BLOCKS = PARAM_INVALID_BLOCKS
     ).* from "../replica"
 
+    pure val DEFAULT_LEADERS = Map(0 -> "n0", 1 -> "n5", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4")
+    pure val CONTRADICTION_LEADERS = Map(0 -> "n0", 1 -> "n5", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n1")
+
+    type ActionTaken =
+        | InitWithLeader
+        | ProposerStep({
+            id: ReplicaId,
+            block: Block,
+            parent_block: Block,
+            parent_view: ViewNumber,
+        })
+        | OnProposal({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            parent_block: Block,
+            parent_view: ViewNumber,
+            sig_source: str,
+        })
+        | OnTimerExpired({ id: ReplicaId })
+        | ReplicaReceivesNotarizeVote({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            src: ReplicaId,
+        })
+        | ReplicaReceivesCertificate({
+            id: ReplicaId,
+            kind: Kind,
+            block: Block,
+            view: ViewNumber,
+            signatures: Set[Signature],
+            ghost_sender: Signature,
+        })
+        | ReplicaReceivesNullifyVote({
+            id: ReplicaId,
+            view: ViewNumber,
+            src: ReplicaId,
+        })
+        | Observe({ label: str })
+
+    var actionTaken: ActionTaken
+
+    action qc_init_with_leader(leaders: ViewNumber -> ReplicaId): bool =
+        all {
+        initWithLeader(leaders),
+        actionTaken' = InitWithLeader,
+        }
+
+    action qc_proposer_step(id: ReplicaId, block: Block, parent_block: Block, parent_view: ViewNumber): bool =
+        all {
+            proposer_step(id, block, parent_block, parent_view),
+            actionTaken' = ProposerStep({
+                id: id,
+                block: block,
+                parent_block: parent_block,
+                parent_view: parent_view,
+            }),
+        }
+
+    action qc_on_proposal(id: ReplicaId, proposal: Proposal, sig_source: str): bool =
+        all {
+            on_proposal(id, proposal),
+            actionTaken' = OnProposal({
+                id: id,
+                block: proposal.block,
+                view: proposal.view,
+                parent_block: proposal.block_parent,
+                parent_view: proposal.view_parent,
+                sig_source: sig_source,
+            }),
+        }
+
+    action qc_on_timer_expired(id: ReplicaId): bool =
+        all {
+            on_timer_expired(id),
+            actionTaken' = OnTimerExpired({ id: id }),
+        }
+
+    action replica_receives_notarize_vote(id: ReplicaId, block: Block, view: ViewNumber, src: ReplicaId): bool =
+        all {
+            on_vote_notarize(id, view, block, Set(notarize(view, src, block))),
+            actionTaken' = ReplicaReceivesNotarizeVote({
+                id: id,
+                block: block,
+                view: view,
+                src: src,
+            }),
+        }
+
+    action replica_receives_certificate(id: ReplicaId, cert: Certificate): bool =
+        all {
+            on_certificate(id, cert),
+            actionTaken' = ReplicaReceivesCertificate({
+                id: id,
+                kind: cert.kind,
+                block: cert.block,
+                view: cert.view,
+                signatures: cert.signatures,
+                ghost_sender: cert.ghost_sender,
+            }),
+        }
+
+    action replica_receives_nullify_vote(id: ReplicaId, view: ViewNumber, src: str): bool =
+        all {
+            on_vote_nullify(id, view, Set(nullify(view, src))),
+            actionTaken' = ReplicaReceivesNullifyVote({
+                id: id,
+                view: view,
+                src: src,
+            }),
+        }
+
     run timeoutTest = {
         // ----- first block (view 1) -----
         val proposal1 = {
@@ -24,16 +137,16 @@ module tests_n6f1b0_failures {
             sig: sig_of("n0")
         }
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n5", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader(DEFAULT_LEADERS)
             // === view 0 ===
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW)) // leader n0 proposes, view 0
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
             .expect(all_invariants)
             // n0 has sent notarize vote for its proposal in proposer_step, but all other replicas do not see it
-            .then(on_timer_expired("n1"))
-            .then(on_timer_expired("n2"))
-            .then(on_timer_expired("n3"))
-            .then(on_timer_expired("n4"))
-            .then(on_timer_expired("n5"))
+            .then(qc_on_timer_expired("n1"))
+            .then(qc_on_timer_expired("n2"))
+            .then(qc_on_timer_expired("n3"))
+            .then(qc_on_timer_expired("n4"))
+            .then(qc_on_timer_expired("n5"))
             .expect(all_invariants)
 
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n0"))
@@ -75,6 +188,7 @@ module tests_n6f1b0_failures {
                 assert(replica_state.get("n3").view == 1),
                 assert(replica_state.get("n4").view == 1),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "timeout_views" }),
                 unchanged_all,
             })
             .expect(all_invariants)
@@ -85,6 +199,7 @@ module tests_n6f1b0_failures {
                 assert(ghost_committed_blocks.get("n3") == []),
                 assert(ghost_committed_blocks.get("n4") == []),
                 assert(ghost_committed_blocks.get("n5") == []),
+                actionTaken' = Observe({ label: "timeout_committed" }),
                 unchanged_all,
             })
     }
@@ -115,16 +230,16 @@ module tests_n6f1b0_failures {
             ghost_sender: sig_of("n2"),
         }
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n5", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader(DEFAULT_LEADERS)
             // === view 0 ===
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW)) // leader n0 proposes, view 0
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
             .expect(all_invariants)
             // n0 has sent notarize vote for its proposal in proposer_step, but all other replicas do not see it
-            .then(on_timer_expired("n1"))
-            .then(on_timer_expired("n2"))
-            .then(on_timer_expired("n3"))
-            .then(on_timer_expired("n4"))
-            .then(on_timer_expired("n5"))
+            .then(qc_on_timer_expired("n1"))
+            .then(qc_on_timer_expired("n2"))
+            .then(qc_on_timer_expired("n3"))
+            .then(qc_on_timer_expired("n4"))
+            .then(qc_on_timer_expired("n5"))
             .expect(all_invariants)
 
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n0"))
@@ -133,13 +248,11 @@ module tests_n6f1b0_failures {
             .then(replica_receives_nullify_vote("n1", 0, "n2"))
             .then(replica_receives_nullify_vote("n1", 0, "n3"))
             .then(replica_receives_nullify_vote("n1", 0, "n4"))
-            
 
             .then(replica_receives_nullify_vote("n2", 0, "n1"))
             .then(replica_receives_nullify_vote("n2", 0, "n2"))
             .then(replica_receives_nullify_vote("n2", 0, "n3"))
             .then(replica_receives_nullify_vote("n2", 0, "n4"))
-            
 
             .then(replica_receives_nullify_vote("n3", 0, "n1"))
             .then(replica_receives_nullify_vote("n3", 0, "n2"))
@@ -150,17 +263,19 @@ module tests_n6f1b0_failures {
             .then(replica_receives_nullify_vote("n4", 0, "n2"))
             .then(replica_receives_nullify_vote("n4", 0, "n3"))
             .then(replica_receives_nullify_vote("n4", 0, "n4"))
-        
+
             .then(replica_receives_certificate("n5", nullification_n1n2n3))
 
-            .then(all{
+            .then(all {
                 assert(store_certificate.get("n5").size() == 1),
+                actionTaken' = Observe({ label: "nullification_store_once" }),
                 unchanged_all
             })
-            .then(all{
+            .then(all {
                 assert(store_certificate.get("n5").size() == 1),
+                actionTaken' = Observe({ label: "nullification_store_stable" }),
                 unchanged_all
-            }) 
+            })
             .then(all {
                 assert(replica_state.get("n0").view == 0),
                 assert(replica_state.get("n1").view == 1),
@@ -168,6 +283,7 @@ module tests_n6f1b0_failures {
                 assert(replica_state.get("n3").view == 1),
                 assert(replica_state.get("n4").view == 1),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "nullification_views" }),
                 unchanged_all,
             })
             .expect(all_invariants)
@@ -178,6 +294,7 @@ module tests_n6f1b0_failures {
                 assert(ghost_committed_blocks.get("n3") == []),
                 assert(ghost_committed_blocks.get("n4") == []),
                 assert(ghost_committed_blocks.get("n5") == []),
+                actionTaken' = Observe({ label: "nullification_committed" }),
                 unchanged_all,
             })
     }
@@ -191,11 +308,11 @@ module tests_n6f1b0_failures {
             sig: sig_of("n0")
         }
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n5", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n1"))
+        qc_init_with_leader(CONTRADICTION_LEADERS)
             // === view 0 ===
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
-            .then(on_proposal("n1", proposal0))
-            .then(on_proposal("n2", proposal0))
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(qc_on_proposal("n1", proposal0, "n0"))
+            .then(qc_on_proposal("n2", proposal0, "n0"))
 
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n0"))
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n1"))
@@ -205,9 +322,9 @@ module tests_n6f1b0_failures {
             .then(replica_receives_notarize_vote("n2", "val_b0", 0, "n0"))
             .then(replica_receives_notarize_vote("n2", "val_b0", 0, "n1"))
 
-            .then(on_timer_expired("n3"))
-            .then(on_timer_expired("n4"))
-            .then(on_timer_expired("n5"))
+            .then(qc_on_timer_expired("n3"))
+            .then(qc_on_timer_expired("n4"))
+            .then(qc_on_timer_expired("n5"))
 
             .then(all {
                 assert(replica_state.get("n0").view == 0),
@@ -216,6 +333,7 @@ module tests_n6f1b0_failures {
                 assert(replica_state.get("n3").view == 0),
                 assert(replica_state.get("n4").view == 0),
                 assert(replica_state.get("n5").view == 0),
+                actionTaken' = Observe({ label: "contradiction_initial_views" }),
                 unchanged_all,
             })
 
@@ -230,14 +348,15 @@ module tests_n6f1b0_failures {
                 assert(replica_state.get("n0").nullified == false),
                 assert(replica_state.get("n0").notarized.get(0) == "val_b0"),
                 assert(is_contradicted(replica_state.get("n0"), 0, store_vote.get("n0")) == false),
+                actionTaken' = Observe({ label: "contradiction_n0_before_quorum" }),
                 unchanged_all,
             })
 
             // no contradiction, no nullification will be sent.
-
             .then(all {
                 assert(store_vote.get("n0").filter(v=>v.view==0).size() == 4),
                 assert(replica_state.get("n0").nullified == false),
+                actionTaken' = Observe({ label: "contradiction_n0_vote_count" }),
                 unchanged_all,
             })
 
@@ -246,6 +365,7 @@ module tests_n6f1b0_failures {
             .then(all {
                 assert(store_vote.get("n1").filter(v=>v.view==0).size() == 2),
                 assert(replica_state.get("n1").nullified == false),
+                actionTaken' = Observe({ label: "contradiction_n1_before_quorum" }),
                 unchanged_all,
             })
             .then(replica_receives_nullify_vote("n1", 0, "n4"))
@@ -254,19 +374,10 @@ module tests_n6f1b0_failures {
                 assert(store_vote.get("n1").filter(v=>v.view==0 and v.kind==NullifyKind).size() == 3),
                 assert(store_vote.get("n1").filter(v=>v.view==0).size() == 4),
                 assert(replica_state.get("n1").view == 1),
+                actionTaken' = Observe({ label: "contradiction_n1_after_quorum" }),
                 unchanged_all,
             })
     }
-
-
-    action replica_receives_notarize_vote(id: ReplicaId, block: Block, view: ViewNumber, src: ReplicaId): bool =
-        on_vote_notarize(id, view, block,  Set(notarize(view, src, block)))
-    
-    action replica_receives_certificate(id: ReplicaId, cert: Certificate): bool =
-        on_certificate(id, cert)
-
-    action replica_receives_nullify_vote(id: ReplicaId, view: ViewNumber, src: str): bool =
-        on_vote_nullify(id, view, Set(nullify(view, src)))
 
     action unchanged_all = all {
         sent_proposal' = sent_proposal,
