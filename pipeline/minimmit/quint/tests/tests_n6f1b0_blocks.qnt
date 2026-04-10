@@ -14,6 +14,74 @@ module tests_n6f1b0_blocks {
         INVALID_BLOCKS = PARAM_INVALID_BLOCKS
     ).* from "../replica"
 
+    pure val DEFAULT_LEADERS = Map(0 -> "n0", 1 -> "n1", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4")
+
+    type ActionTaken =
+        | InitWithLeader
+        | ProposerStep({
+            id: ReplicaId,
+            block: Block,
+            parent_block: Block,
+            parent_view: ViewNumber,
+        })
+        | OnProposal({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            parent_block: Block,
+            parent_view: ViewNumber,
+            sig_source: str,
+        })
+        | ReplicaReceivesNotarizeVote({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            src: ReplicaId,
+        })
+        | Observe({ label: str })
+
+    var actionTaken: ActionTaken
+
+    action qc_init_with_leader = all {
+        initWithLeader(DEFAULT_LEADERS),
+        actionTaken' = InitWithLeader,
+    }
+
+    action qc_proposer_step(id: ReplicaId, block: Block, parent_block: Block, parent_view: ViewNumber): bool =
+        all {
+            proposer_step(id, block, parent_block, parent_view),
+            actionTaken' = ProposerStep({
+                id: id,
+                block: block,
+                parent_block: parent_block,
+                parent_view: parent_view,
+            }),
+        }
+
+    action qc_on_proposal(id: ReplicaId, proposal: Proposal, sig_source: str): bool =
+        all {
+            on_proposal(id, proposal),
+            actionTaken' = OnProposal({
+                id: id,
+                block: proposal.block,
+                view: proposal.view,
+                parent_block: proposal.block_parent,
+                parent_view: proposal.view_parent,
+                sig_source: sig_source,
+            }),
+        }
+
+    action replica_receives_notarize_vote(id: ReplicaId, block: Block, view: ViewNumber, src: ReplicaId): bool =
+        all {
+            on_vote_notarize(id, view, block, Set(notarize(view, src, block))),
+            actionTaken' = ReplicaReceivesNotarizeVote({
+                id: id,
+                block: block,
+                view: view,
+                src: src,
+            }),
+        }
+
     run twoBlocksTest = {
         val proposal1 = {
             block: "val_b0",
@@ -31,19 +99,19 @@ module tests_n6f1b0_blocks {
             sig: sig_of("n1")
         }
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n1", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader
 
             // === FIRST BLOCK (VIEW 1) ===
             // Leader n0 proposes in view 1
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
             .expect(all_invariants)
 
             // All replicas process the proposal and vote for it (n0 did it already)
-            .then(on_proposal("n1", proposal1))
-            .then(on_proposal("n2", proposal1))
-            .then(on_proposal("n3", proposal1))
-            .then(on_proposal("n4", proposal1))
-            .then(on_proposal("n5", proposal1))
+            .then(qc_on_proposal("n1", proposal1, "n0"))
+            .then(qc_on_proposal("n2", proposal1, "n0"))
+            .then(qc_on_proposal("n3", proposal1, "n0"))
+            .then(qc_on_proposal("n4", proposal1, "n0"))
+            .then(qc_on_proposal("n5", proposal1, "n0"))
             .expect(all_invariants)
 
             // All replicas collect votes for block 1
@@ -127,21 +195,22 @@ module tests_n6f1b0_blocks {
                 assert(ghost_committed_blocks.get("n4") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0"]),
 
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
             // === SECOND BLOCK (VIEW 1) ===
             // Leader n1 proposes in view 1
-            .then(proposer_step("n1", "val_b1", "val_b0", 0))
+            .then(qc_proposer_step("n1", "val_b1", "val_b0", 0))
             .expect(all_invariants)
 
             // All replicas process the second proposal and vote for it (n1 already did!)
-            .then(on_proposal("n0", proposal2))
-            //.then(on_proposal("n1", proposal2))
-            .then(on_proposal("n2", proposal2))
-            .then(on_proposal("n3", proposal2))
-            .then(on_proposal("n4", proposal2))
-            .then(on_proposal("n5", proposal2))
+            .then(qc_on_proposal("n0", proposal2, "n1"))
+            //.then(qc_on_proposal("n1", proposal2, "n1"))
+            .then(qc_on_proposal("n2", proposal2, "n1"))
+            .then(qc_on_proposal("n3", proposal2, "n1"))
+            .then(qc_on_proposal("n4", proposal2, "n1"))
+            .then(qc_on_proposal("n5", proposal2, "n1"))
             .expect(all_invariants)
 
             // All replicas collect votes for block 2
@@ -226,6 +295,7 @@ module tests_n6f1b0_blocks {
                 assert(ghost_committed_blocks.get("n4") == ["val_b0", "val_b1"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0", "val_b1"]),
 
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
             .expect(all_invariants)
@@ -257,19 +327,19 @@ module tests_n6f1b0_blocks {
             sig: sig_of("n1")
         }
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n1", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader
 
             // === FIRST BLOCK (VIEW 1) ===
             // Leader n0 proposes in view 1
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
             .expect(all_invariants)
 
             // All replicas process the proposal and vote for it (n0 did it already)
-            .then(on_proposal("n1", proposal1))
-            .then(on_proposal("n2", proposal1))
-            .then(on_proposal("n3", proposal1))
-            .then(on_proposal("n4", proposal1))
-            .then(on_proposal("n5", proposal1))
+            .then(qc_on_proposal("n1", proposal1, "n0"))
+            .then(qc_on_proposal("n2", proposal1, "n0"))
+            .then(qc_on_proposal("n3", proposal1, "n0"))
+            .then(qc_on_proposal("n4", proposal1, "n0"))
+            .then(qc_on_proposal("n5", proposal1, "n0"))
             .expect(all_invariants)
 
             // All replicas collect semiquorum for block 1
@@ -333,6 +403,7 @@ module tests_n6f1b0_blocks {
                 assert(ghost_committed_blocks.get("n4") == []),
                 assert(ghost_committed_blocks.get("n5") == []),
 
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -398,20 +469,21 @@ module tests_n6f1b0_blocks {
                 assert(ghost_committed_blocks.get("n4") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0"]),
 
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
             // === SECOND BLOCK (VIEW 1) ===
             // Leader n1 proposes in view 1
-            .then(proposer_step("n1", "val_b1", "val_b0", 0))
+            .then(qc_proposer_step("n1", "val_b1", "val_b0", 0))
             .expect(all_invariants)
 
             // All replicas process the second proposal and vote for it (n1 already did!)
-            .then(on_proposal("n0", proposal2))
-            .then(on_proposal("n2", proposal2))
-            .then(on_proposal("n3", proposal2))
-            .then(on_proposal("n4", proposal2))
-            .then(on_proposal("n5", proposal2))
+            .then(qc_on_proposal("n0", proposal2, "n1"))
+            .then(qc_on_proposal("n2", proposal2, "n1"))
+            .then(qc_on_proposal("n3", proposal2, "n1"))
+            .then(qc_on_proposal("n4", proposal2, "n1"))
+            .then(qc_on_proposal("n5", proposal2, "n1"))
             .expect(all_invariants)
 
             // All replicas collect votes for block 2
@@ -472,7 +544,6 @@ module tests_n6f1b0_blocks {
             .expect(is_view_notarized(1, store_certificate.get("n4")))
             .expect(is_view_notarized(1, store_certificate.get("n5")))
 
-
             // Check both blocks are committed and replicas advance to view 3
             .then(all {
                 assert(replica_state.get("n0").last_finalized == 1),
@@ -497,22 +568,12 @@ module tests_n6f1b0_blocks {
                 assert(ghost_committed_blocks.get("n4") == ["val_b0", "val_b1"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0", "val_b1"]),
 
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
             .expect(all_invariants)
     }
-
-
-
-    action replica_receives_notarize_vote(id: ReplicaId, block: Block, view: ViewNumber, src: ReplicaId): bool =
-        on_vote_notarize(id, view, block,  Set(notarize(view, src, block)))
-    
-    action replica_receives_certificate(id: ReplicaId, cert: Certificate): bool =
-        on_certificate(id, cert)
-
-    action replica_receives_nullify_vote(id: ReplicaId, view: ViewNumber, src: str): bool =
-        on_vote_nullify(id, view, Set(nullify(view, src)))
 
     action unchanged_all = all {
         sent_proposal' = sent_proposal,
