@@ -14,15 +14,82 @@ module tests_n6f1b0_basic {
         INVALID_BLOCKS = PARAM_INVALID_BLOCKS
     ).* from "../replica"
 
+    pure val DEFAULT_LEADERS = Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4")
+
+    type ActionTaken =
+        | InitWithLeader
+        | ProposerStep({
+            id: ReplicaId,
+            block: Block,
+            parent_block: Block,
+            parent_view: ViewNumber,
+        })
+        | OnProposal({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            parent_block: Block,
+            parent_view: ViewNumber,
+            sig_source: str,
+        })
+        | ReplicaReceivesNotarizeVote({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            src: ReplicaId,
+        })
+        | Observe({ label: str })
+
+    var actionTaken: ActionTaken
+
+    action qc_init_with_leader = all {
+        initWithLeader(DEFAULT_LEADERS),
+        actionTaken' = InitWithLeader,
+    }
+
+    action qc_proposer_step(id: ReplicaId, block: Block, parent_block: Block, parent_view: ViewNumber): bool =
+        all {
+            proposer_step(id, block, parent_block, parent_view),
+            actionTaken' = ProposerStep({
+                id: id,
+                block: block,
+                parent_block: parent_block,
+                parent_view: parent_view,
+            }),
+        }
+
+    action qc_on_proposal(id: ReplicaId, proposal: Proposal, sig_source: str): bool =
+        all {
+            on_proposal(id, proposal),
+            actionTaken' = OnProposal({
+                id: id,
+                block: proposal.block,
+                view: proposal.view,
+                parent_block: proposal.block_parent,
+                parent_view: proposal.view_parent,
+                sig_source: sig_source,
+            }),
+        }
+
+    action replica_receives_notarize_vote(id: ReplicaId, block: Block, view: ViewNumber, src: ReplicaId): bool =
+        all {
+            on_vote_notarize(id, view, block, Set(notarize(view, src, block))),
+            actionTaken' = ReplicaReceivesNotarizeVote({
+                id: id,
+                block: block,
+                view: view,
+                src: src,
+            }),
+        }
+
     run asuumptionsValidTest = all {
         L == 5,
         M == 3,
         assumptions_valid
     }
 
-    // Simple init test
     run initTest = {
-        initWithLeader(Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader
             .then(all {
                 assert(replica_state.get("n0").view == 0),
                 assert(replica_state.get("n1").view == 0),
@@ -31,18 +98,19 @@ module tests_n6f1b0_basic {
                 assert(replica_state.get("n4").view == 0),
                 assert(replica_state.get("n5").view == 0),
                 assert(leader.get(1) == "n0"),
+                actionTaken' = Observe({ label: "init_observe" }),
                 unchanged_all
-            })}
+            })
+    }
 
-    // Minimal test without init
     run minimalProposalTest = {
-        // Manual state setup
-        initWithLeader(Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
-        .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
-        .then(all {
-            assert(sent_proposal.size() == 1),
-            unchanged_all
-        })
+        qc_init_with_leader
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(all {
+                assert(sent_proposal.size() == 1),
+                actionTaken' = Observe({ label: "minimal_proposal_observe" }),
+                unchanged_all
+            })
     }
 
     run happyPathTest = {
@@ -54,77 +122,82 @@ module tests_n6f1b0_basic {
             sig: sig_of("n0")
         }
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
-            // Leader n0 proposes in view 0
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
-            .then( all {
-                assert(replica_state.get("n0").notarized.get(0)=="val_b0"),
+        qc_init_with_leader
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(all {
+                assert(replica_state.get("n0").notarized.get(0) == "val_b0"),
+                actionTaken' = Observe({ label: "happy_after_proposer_step" }),
                 unchanged_all
             })
             .expect(all_invariants)
-            // All replicas process the proposal and vote for it (n0 already did!)
-            .then(on_proposal("n1", proposal))
-            .then( all {
-                assert(replica_state.get("n1").notarized.get(0)=="val_b0"),
+            .then(qc_on_proposal("n1", proposal, "n0"))
+            .then(all {
+                assert(replica_state.get("n1").notarized.get(0) == "val_b0"),
+                actionTaken' = Observe({ label: "happy_after_n1_proposal" }),
                 unchanged_all
             })
-            .then(on_proposal("n2", proposal))
-            .then( all {
-                assert(replica_state.get("n2").notarized.get(0)=="val_b0"),
+            .then(qc_on_proposal("n2", proposal, "n0"))
+            .then(all {
+                assert(replica_state.get("n2").notarized.get(0) == "val_b0"),
+                actionTaken' = Observe({ label: "happy_after_n2_proposal" }),
                 unchanged_all
             })
-            .then(on_proposal("n3", proposal))
-            .then( all {
-                assert(replica_state.get("n3").notarized.get(0)=="val_b0"),
+            .then(qc_on_proposal("n3", proposal, "n0"))
+            .then(all {
+                assert(replica_state.get("n3").notarized.get(0) == "val_b0"),
+                actionTaken' = Observe({ label: "happy_after_n3_proposal" }),
                 unchanged_all
             })
-            .then(on_proposal("n4", proposal))
-            .then( all {
-                assert(replica_state.get("n4").notarized.get(0)=="val_b0"),
+            .then(qc_on_proposal("n4", proposal, "n0"))
+            .then(all {
+                assert(replica_state.get("n4").notarized.get(0) == "val_b0"),
+                actionTaken' = Observe({ label: "happy_after_n4_proposal" }),
                 unchanged_all
             })
-            .then(on_proposal("n5", proposal))
-            .then( all {
-                assert(replica_state.get("n5").notarized.get(0)=="val_b0"),
+            .then(qc_on_proposal("n5", proposal, "n0"))
+            .then(all {
+                assert(replica_state.get("n5").notarized.get(0) == "val_b0"),
+                actionTaken' = Observe({ label: "happy_after_n5_proposal" }),
                 unchanged_all
             })
             .expect(all_invariants)
 
-            // All replicas collect votes and notarize the block
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n0"))
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n1"))
-            .then(all{
+            .then(all {
                 assert(store_certificate.get("n0").size() == 0),
-                assert(replica_state.get("n0").ghost_last_seen_notarization==-1),
-                assert(replica_state.get("n0").view==0),
-                assert(replica_state.get("n0").last_finalized==-1),
+                assert(replica_state.get("n0").ghost_last_seen_notarization == -1),
+                assert(replica_state.get("n0").view == 0),
+                assert(replica_state.get("n0").last_finalized == -1),
+                actionTaken' = Observe({ label: "happy_n0_after_two_votes" }),
                 unchanged_all
             })
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n2"))
-            .then(all{
-                assert(replica_state.get("n0").view==1),
-                assert(replica_state.get("n0").ghost_last_seen_notarization==0),
-                assert(replica_state.get("n0").last_finalized==-1),
+            .then(all {
+                assert(replica_state.get("n0").view == 1),
+                assert(replica_state.get("n0").ghost_last_seen_notarization == 0),
+                assert(replica_state.get("n0").last_finalized == -1),
                 assert(store_certificate.get("n0").size() == 1),
                 assert(store_certificate.get("n1").size() == 0),
                 assert(is_view_notarized(0, store_certificate.get("n0"))),
                 assert(is_view_notarized_votes(0, store_vote.get("n0"), proposal.block)),
+                actionTaken' = Observe({ label: "happy_n0_after_m_quorum" }),
                 unchanged_all
             })
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n3"))
-            .then(all{
+            .then(all {
                 assert(store_certificate.get("n0").size() == 1),
+                actionTaken' = Observe({ label: "happy_n0_after_n3_vote" }),
                 unchanged_all
             })
-            
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n4"))
-            .then(all{
+            .then(all {
                 assert(store_certificate.get("n0").size() == 2),
-                assert(replica_state.get("n0").ghost_last_seen_notarization==0),
-                assert(replica_state.get("n0").last_finalized==0),
+                assert(replica_state.get("n0").ghost_last_seen_notarization == 0),
+                assert(replica_state.get("n0").last_finalized == 0),
+                actionTaken' = Observe({ label: "happy_n0_after_l_quorum" }),
                 unchanged_all
             })
-
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n5"))
 
             .then(replica_receives_notarize_vote("n1", "val_b0", 0, "n0"))
@@ -162,12 +235,12 @@ module tests_n6f1b0_basic {
             .then(replica_receives_notarize_vote("n5", "val_b0", 0, "n4"))
             .then(replica_receives_notarize_vote("n5", "val_b0", 0, "n5"))
 
-            .expect(select_votes(0, NotarizeKind, store_vote.get("n0")).size()==6)
-            .expect(select_votes(0, NotarizeKind, store_vote.get("n1")).size()==6)
-            .expect(select_votes(0, NotarizeKind, store_vote.get("n2")).size()==6)
-            .expect(select_votes(0, NotarizeKind, store_vote.get("n3")).size()==6)
-            .expect(select_votes(0, NotarizeKind, store_vote.get("n4")).size()==6)
-            .expect(select_votes(0, NotarizeKind, store_vote.get("n5")).size()==6)
+            .expect(select_votes(0, NotarizeKind, store_vote.get("n0")).size() == 6)
+            .expect(select_votes(0, NotarizeKind, store_vote.get("n1")).size() == 6)
+            .expect(select_votes(0, NotarizeKind, store_vote.get("n2")).size() == 6)
+            .expect(select_votes(0, NotarizeKind, store_vote.get("n3")).size() == 6)
+            .expect(select_votes(0, NotarizeKind, store_vote.get("n4")).size() == 6)
+            .expect(select_votes(0, NotarizeKind, store_vote.get("n5")).size() == 6)
 
             .expect(is_view_finalized_votes(0, store_vote.get("n0"), "val_b0"))
             .expect(is_view_finalized_votes(0, store_vote.get("n0"), "val_b0"))
@@ -199,6 +272,7 @@ module tests_n6f1b0_basic {
                 assert(replica_state.get("n3").last_finalized == 0),
                 assert(replica_state.get("n4").last_finalized == 0),
                 assert(replica_state.get("n5").last_finalized == 0),
+                actionTaken' = Observe({ label: "happy_finalized_block_0" }),
                 unchanged_all,
             })
 
@@ -209,6 +283,7 @@ module tests_n6f1b0_basic {
                 assert(replica_state.get("n3").view == 1),
                 assert(replica_state.get("n4").view == 1),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "happy_entered_view_1" }),
                 unchanged_all,
             })
 
@@ -219,20 +294,10 @@ module tests_n6f1b0_basic {
                 assert(ghost_committed_blocks.get("n3") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n4") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0"]),
+                actionTaken' = Observe({ label: "happy_committed_block_0" }),
                 unchanged_all,
             })
     }
-
-
-
-    action replica_receives_notarize_vote(id: ReplicaId, block: Block, view: ViewNumber, src: ReplicaId): bool =
-        on_vote_notarize(id, view, block,  Set(notarize(view, src, block)))
-    
-    action replica_receives_certificate(id: ReplicaId, cert: Certificate): bool =
-        on_certificate(id, cert)
-
-    action replica_receives_nullify_vote(id: ReplicaId, view: ViewNumber, src: str): bool =
-        on_vote_nullify(id, view, Set(nullify(view, src)))
 
     action unchanged_all = all {
         sent_proposal' = sent_proposal,
