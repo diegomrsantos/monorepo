@@ -14,6 +14,71 @@ module tests_n6f1b0_certificates {
         INVALID_BLOCKS = PARAM_INVALID_BLOCKS
     ).* from "../replica"
 
+    pure val DEFAULT_LEADERS = Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4")
+
+    type ActionTaken =
+        | InitWithLeader
+        | ProposerStep({
+            id: ReplicaId,
+            block: Block,
+            parent_block: Block,
+            parent_view: ViewNumber,
+        })
+        | OnProposal({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            parent_block: Block,
+            parent_view: ViewNumber,
+            sig_source: str,
+        })
+        | ReplicaReceivesNotarizeVote({
+            id: ReplicaId,
+            block: Block,
+            view: ViewNumber,
+            src: ReplicaId,
+        })
+        | ReplicaReceivesCertificate({
+            id: ReplicaId,
+            kind: Kind,
+            block: Block,
+            view: ViewNumber,
+            signatures: Set[Signature],
+            ghost_sender: Signature,
+        })
+        | Observe({ label: str })
+
+    var actionTaken: ActionTaken
+
+    action qc_init_with_leader = all {
+        initWithLeader(DEFAULT_LEADERS),
+        actionTaken' = InitWithLeader,
+    }
+
+    action qc_proposer_step(id: ReplicaId, block: Block, parent_block: Block, parent_view: ViewNumber): bool =
+        all {
+            proposer_step(id, block, parent_block, parent_view),
+            actionTaken' = ProposerStep({
+                id: id,
+                block: block,
+                parent_block: parent_block,
+                parent_view: parent_view,
+            }),
+        }
+
+    action qc_on_proposal(id: ReplicaId, proposal: Proposal, sig_source: str): bool =
+        all {
+            on_proposal(id, proposal),
+            actionTaken' = OnProposal({
+                id: id,
+                block: proposal.block,
+                view: proposal.view,
+                parent_block: proposal.block_parent,
+                parent_view: proposal.view_parent,
+                sig_source: sig_source,
+            }),
+        }
+
     run n5NodeIsSlowAndGetFinalizationFirstTest = {
         val proposal = {
             block: "val_b0",
@@ -31,38 +96,44 @@ module tests_n6f1b0_certificates {
                 ghost_sender: sig_of("n0"),
             }
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader
             // Leader n0 proposes in view 0
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
             .then( all {
                 assert(replica_state.get("n0").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .expect(all_invariants)
             // All replicas process the proposal and vote for it (n0 already did!)
-            .then(on_proposal("n1", proposal))
+            .then(qc_on_proposal("n1", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n1").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n2", proposal))
+            .then(qc_on_proposal("n2", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n2").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n3", proposal))
+            .then(qc_on_proposal("n3", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n3").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n4", proposal))
+            .then(qc_on_proposal("n4", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n4").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n5", proposal))
+            .then(qc_on_proposal("n5", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n5").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .expect(all_invariants)
@@ -75,6 +146,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n0").ghost_last_seen_notarization==-1),
                 assert(replica_state.get("n0").view==0),
                 assert(replica_state.get("n0").last_finalized==-1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n2"))
@@ -86,11 +158,13 @@ module tests_n6f1b0_certificates {
                 assert(store_certificate.get("n1").size() == 0),
                 assert(is_view_notarized(0, store_certificate.get("n0"))),
                 assert(is_view_notarized_votes(0, store_vote.get("n0"), proposal.block)),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n3"))
             .then(all{
                 assert(store_certificate.get("n0").size() == 1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             
@@ -99,6 +173,7 @@ module tests_n6f1b0_certificates {
                 assert(store_certificate.get("n0").size() == 2),
                 assert(replica_state.get("n0").ghost_last_seen_notarization==0),
                 assert(replica_state.get("n0").last_finalized==0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_notarize_vote("n0", "val_b0", 0, "n5"))
@@ -106,6 +181,7 @@ module tests_n6f1b0_certificates {
                 assert(store_certificate.get("n0").size() == 2),
                 assert(replica_state.get("n0").ghost_last_seen_notarization==0),
                 assert(replica_state.get("n0").last_finalized==0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
 
@@ -144,6 +220,7 @@ module tests_n6f1b0_certificates {
                 assert(store_certificate.get("n5").size() == 0),
                 assert(not(is_view_notarized(0, store_certificate.get("n5")))),
                 assert(not(is_view_notarized_votes(0, store_vote.get("n5"), proposal.block))),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_certificate("n5", cert_n0n1n2n3n4))
@@ -155,6 +232,7 @@ module tests_n6f1b0_certificates {
                 assert(store_certificate.get("n5").filter(cert=> cert.kind==FinalizationKind).size() == 1),
                 assert(is_view_notarized(0, store_certificate.get("n5"))),
                 assert(is_view_finalized(0, store_certificate.get("n5"))),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             
@@ -218,6 +296,7 @@ module tests_n6f1b0_certificates {
                 assert(ghost_committed_blocks.get("n3") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n4") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0"]),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -228,6 +307,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n3").view == 1),
                 assert(replica_state.get("n4").view == 1),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -238,6 +318,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n3").ghost_last_seen_notarization == 0),
                 assert(replica_state.get("n4").ghost_last_seen_notarization == 0),
                 assert(replica_state.get("n5").ghost_last_seen_notarization == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -248,6 +329,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n3").last_finalized == 0),
                 assert(replica_state.get("n4").last_finalized == 0),
                 assert(replica_state.get("n5").last_finalized == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -286,28 +368,32 @@ module tests_n6f1b0_certificates {
         }
 
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader
             // Leader n0 proposes in view 0
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
             .then( all {
                 assert(replica_state.get("n0").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .expect(all_invariants)
             // replicas n0-n4, but not n5 process the proposal and vote for it (n0 already did!)
-            .then(on_proposal("n1", proposal))
+            .then(qc_on_proposal("n1", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n1").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n2", proposal))
+            .then(qc_on_proposal("n2", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n2").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n3", proposal))
+            .then(qc_on_proposal("n3", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n3").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
 
@@ -340,6 +426,7 @@ module tests_n6f1b0_certificates {
                 assert(not(sent_vote.contains(n4_vote))),
                 assert(store_vote.get("n4").filter(v=>v.view==0 and v.kind==NotarizeKind and v.block == "val_b0").size() == 0),
                 assert(store_certificate.get("n4").size() == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_certificate("n4", cert_n0n1n2))
@@ -347,6 +434,7 @@ module tests_n6f1b0_certificates {
             .then(all{
                 assert(store_certificate.get("n4").size() == 1),
                 assert(sent_vote.contains(n4_vote)),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
 
@@ -362,6 +450,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n5").notarized.get(0) == EMPTY_BLOCK),
                 assert(not(replica_state.get("n5").has_notarized())),
                 assert(replica_state.get("n5").view == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_notarize_vote("n5", "val_b0", 0, "n2"))
@@ -373,6 +462,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n5").ghost_sent_votes.get(0).length() == 1),
                 assert(replica_state.get("n5").notarized.get(0) == "val_b0"),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             // n5 receives another vote. It should be in new view now, so no votes for previous view or new certificates.
@@ -382,6 +472,7 @@ module tests_n6f1b0_certificates {
                 assert(is_view_notarized(0, store_certificate.get("n5"))),
                 assert(replica_state.get("n5").ghost_sent_votes.get(0).length() == 1),
                 assert(replica_state.get("n5").ghost_sent_votes.get(1).length() == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_notarize_vote("n5", "val_b0", 0, "n4"))
@@ -389,6 +480,7 @@ module tests_n6f1b0_certificates {
                 assert(store_certificate.get("n5").size() == 2),
                 assert(is_view_finalized_votes(0, store_vote.get("n5"), "val_b0")),
                 assert(replica_state.get("n5").ghost_sent_votes.get(0).length() == 1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
 
@@ -448,6 +540,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n3").last_finalized == 0),
                 assert(replica_state.get("n4").last_finalized == 0),
                 assert(replica_state.get("n5").last_finalized == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -458,6 +551,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n3").view == 1),
                 assert(replica_state.get("n4").view == 1),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -468,6 +562,7 @@ module tests_n6f1b0_certificates {
                 assert(ghost_committed_blocks.get("n3") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n4") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0"]),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
             
@@ -506,28 +601,32 @@ module tests_n6f1b0_certificates {
         }
 
 
-        initWithLeader(Map(0 -> "n0", 1 -> "n0", 2 -> "n1", 3 -> "n2", 4 -> "n3", 5 -> "n4"))
+        qc_init_with_leader
             // Leader n0 proposes in view 0
-            .then(proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
+            .then(qc_proposer_step("n0", "val_b0", GENESIS_BLOCK, GENESIS_VIEW))
             .then( all {
                 assert(replica_state.get("n0").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .expect(all_invariants)
             // replicas n0-n4, but not n5 process the proposal and vote for it (n0 already did!)
-            .then(on_proposal("n1", proposal))
+            .then(qc_on_proposal("n1", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n1").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n2", proposal))
+            .then(qc_on_proposal("n2", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n2").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
-            .then(on_proposal("n3", proposal))
+            .then(qc_on_proposal("n3", proposal, "n0"))
             .then( all {
                 assert(replica_state.get("n3").notarized.get(0)=="val_b0"),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             
@@ -568,6 +667,7 @@ module tests_n6f1b0_certificates {
                 assert(not(sent_vote.contains(n5_vote))),
                 assert(store_vote.get("n5").filter(v=>v.view==0 and v.kind==NotarizeKind and v.block == "val_b0").size() == 0),
                 assert(store_certificate.get("n5").size() == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             .then(replica_receives_certificate("n5", notarization_n0n1n2))
@@ -576,6 +676,7 @@ module tests_n6f1b0_certificates {
             .then(all{
                 assert(store_certificate.get("n5").size() == 1),
                 assert(sent_vote.contains(n5_vote)),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
 
@@ -586,6 +687,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n5").ghost_sent_votes.get(0).length() == 1),
                 assert(replica_state.get("n5").notarized.get(0) == "val_b0"),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all
             })
             
@@ -611,6 +713,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n3").last_finalized == 0),
                 assert(replica_state.get("n4").last_finalized == 0),
                 assert(replica_state.get("n5").last_finalized == 0),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -621,6 +724,7 @@ module tests_n6f1b0_certificates {
                 assert(replica_state.get("n3").view == 1),
                 assert(replica_state.get("n4").view == 1),
                 assert(replica_state.get("n5").view == 1),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
 
@@ -631,6 +735,7 @@ module tests_n6f1b0_certificates {
                 assert(ghost_committed_blocks.get("n3") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n4") == ["val_b0"]),
                 assert(ghost_committed_blocks.get("n5") == ["val_b0"]),
+                actionTaken' = Observe({ label: "observe" }),
                 unchanged_all,
             })
     }
@@ -639,10 +744,28 @@ module tests_n6f1b0_certificates {
 
 
     action replica_receives_notarize_vote(id: ReplicaId, block: Block, view: ViewNumber, src: ReplicaId): bool =
-        on_vote_notarize(id, view, block,  Set(notarize(view, src, block)))
+        all {
+            on_vote_notarize(id, view, block, Set(notarize(view, src, block))),
+            actionTaken' = ReplicaReceivesNotarizeVote({
+                id: id,
+                block: block,
+                view: view,
+                src: src,
+            }),
+        }
     
     action replica_receives_certificate(id: ReplicaId, cert: Certificate): bool =
-        on_certificate(id, cert)
+        all {
+            on_certificate(id, cert),
+            actionTaken' = ReplicaReceivesCertificate({
+                id: id,
+                kind: cert.kind,
+                block: cert.block,
+                view: cert.view,
+                signatures: cert.signatures,
+                ghost_sender: cert.ghost_sender,
+            }),
+        }
 
     action replica_receives_nullify_vote(id: ReplicaId, view: ViewNumber, src: str): bool =
         on_vote_nullify(id, view, Set(nullify(view, src)))
