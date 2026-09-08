@@ -1,0 +1,20 @@
+{
+  "status": "pass",
+  "phase": "backend-grid",
+  "trials": 672,
+  "cases": 32,
+  "variants": [
+    "vectored",
+    "coalesce",
+    "pool"
+  ],
+  "repetitions": 7,
+  "platform": "macos",
+  "first_completed_at": "2026-09-06T16:08:03.930021+00:00",
+  "last_completed_at": "2026-09-06T16:27:11.767881+00:00",
+  "verified_bytes_total": 37477187584,
+  "checks": "exact plan and randomized order; paired inputs; recorded binary identities; metric arithmetic; all final written slots; source hashes when a repository is supplied",
+  "input_sha256": "94ad1875f8d2dfb8216d298b3e029f9ab3edac3d26e4f9a434fdec95da7260bf",
+  "plan_sha256": "6d847cc3e384a4d7d99c627b30bacbbf89d7ff58791607612338aca33bf97b88",
+  "manifest_sha256": "a70f1027ad5c1a6b8d1a556a748376547828f8339ebc1c3fb9bf8713887a483d"
+}

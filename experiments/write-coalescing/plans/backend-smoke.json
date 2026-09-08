@@ -1,0 +1,202 @@
+{
+  "name": "backend-smoke",
+  "order_seed": 20260912,
+  "data_seed": 8400,
+  "repetitions": 1,
+  "settle_seconds": 0,
+  "variants": {
+    "vectored": {
+      "strategy": "vectored",
+      "binary": "vectored"
+    },
+    "coalesce": {
+      "strategy": "vectored",
+      "binary": "coalesce"
+    },
+    "pool": {
+      "strategy": "vectored",
+      "binary": "pool"
+    }
+  },
+  "defaults": {
+    "layer": "runtime",
+    "duration_ms": 50,
+    "warmup_ms": 10,
+    "file_mib": 8,
+    "writers": 1,
+    "source_mib": 0
+  },
+  "cases": [
+    {
+      "id": "bytes-4096-segments-1",
+      "write_bytes": 4096,
+      "segments": 1
+    },
+    {
+      "id": "bytes-4096-segments-8",
+      "write_bytes": 4096,
+      "segments": 8
+    },
+    {
+      "id": "bytes-4096-segments-32",
+      "write_bytes": 4096,
+      "segments": 32
+    },
+    {
+      "id": "bytes-4096-segments-128",
+      "write_bytes": 4096,
+      "segments": 128
+    },
+    {
+      "id": "bytes-4096-segments-256",
+      "write_bytes": 4096,
+      "segments": 256
+    },
+    {
+      "id": "bytes-4096-segments-1024",
+      "write_bytes": 4096,
+      "segments": 1024
+    },
+    {
+      "id": "bytes-4096-segments-1025",
+      "write_bytes": 4096,
+      "segments": 1025
+    },
+    {
+      "id": "bytes-65536-segments-1",
+      "write_bytes": 65536,
+      "segments": 1
+    },
+    {
+      "id": "bytes-65536-segments-8",
+      "write_bytes": 65536,
+      "segments": 8
+    },
+    {
+      "id": "bytes-65536-segments-32",
+      "write_bytes": 65536,
+      "segments": 32
+    },
+    {
+      "id": "bytes-65536-segments-128",
+      "write_bytes": 65536,
+      "segments": 128
+    },
+    {
+      "id": "bytes-65536-segments-256",
+      "write_bytes": 65536,
+      "segments": 256
+    },
+    {
+      "id": "bytes-65536-segments-1024",
+      "write_bytes": 65536,
+      "segments": 1024
+    },
+    {
+      "id": "bytes-65536-segments-1025",
+      "write_bytes": 65536,
+      "segments": 1025
+    },
+    {
+      "id": "bytes-1048576-segments-1",
+      "write_bytes": 1048576,
+      "segments": 1
+    },
+    {
+      "id": "bytes-1048576-segments-8",
+      "write_bytes": 1048576,
+      "segments": 8
+    },
+    {
+      "id": "bytes-1048576-segments-32",
+      "write_bytes": 1048576,
+      "segments": 32
+    },
+    {
+      "id": "bytes-1048576-segments-128",
+      "write_bytes": 1048576,
+      "segments": 128
+    },
+    {
+      "id": "bytes-1048576-segments-256",
+      "write_bytes": 1048576,
+      "segments": 256
+    },
+    {
+      "id": "bytes-1048576-segments-1024",
+      "write_bytes": 1048576,
+      "segments": 1024
+    },
+    {
+      "id": "bytes-1048576-segments-1025",
+      "write_bytes": 1048576,
+      "segments": 1025
+    },
+    {
+      "id": "sync-bytes-4096-segments-8",
+      "write_bytes": 4096,
+      "segments": 8,
+      "durable": true
+    },
+    {
+      "id": "sync-bytes-4096-segments-256",
+      "write_bytes": 4096,
+      "segments": 256,
+      "durable": true
+    },
+    {
+      "id": "sync-bytes-4096-segments-1025",
+      "write_bytes": 4096,
+      "segments": 1025,
+      "durable": true
+    },
+    {
+      "id": "sync-bytes-65536-segments-8",
+      "write_bytes": 65536,
+      "segments": 8,
+      "durable": true
+    },
+    {
+      "id": "sync-bytes-65536-segments-256",
+      "write_bytes": 65536,
+      "segments": 256,
+      "durable": true
+    },
+    {
+      "id": "sync-bytes-65536-segments-1025",
+      "write_bytes": 65536,
+      "segments": 1025,
+      "durable": true
+    },
+    {
+      "id": "independent-bytes-4096-segments-256",
+      "write_bytes": 4096,
+      "segments": 256,
+      "independent_segments": true
+    },
+    {
+      "id": "independent-bytes-65536-segments-256",
+      "write_bytes": 65536,
+      "segments": 256,
+      "independent_segments": true
+    },
+    {
+      "id": "independent-bytes-1048576-segments-1025",
+      "write_bytes": 1048576,
+      "segments": 1025,
+      "independent_segments": true
+    },
+    {
+      "id": "rotating-bytes-65536-segments-256",
+      "write_bytes": 65536,
+      "segments": 256,
+      "source_mib": 16
+    },
+    {
+      "id": "rotating-bytes-1048576-segments-1025",
+      "write_bytes": 1048576,
+      "segments": 1025,
+      "source_mib": 16
+    }
+  ]
+}

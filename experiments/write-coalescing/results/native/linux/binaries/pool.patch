@@ -1,0 +1,12 @@
+--- a/runtime/src/storage/tokio/blob.rs
++++ b/runtime/src/storage/tokio/blob.rs
+@@ -344,7 +344,9 @@
+         };
+         let partition = sync.then(|| self.partition.clone());
+         let name = sync.then(|| self.name.clone());
++        let pool = self.pool.clone();
+         task::spawn_blocking(move || {
++            let bufs: IoBufs = bufs.coalesce_with_pool(&pool).into();
+             // Preserve the single-buffer fast path when no option requires per-write flags.
+             let bufs = if !sync && !cache.is_disabled() {
+                 match bufs.try_into_single() {

@@ -1,0 +1,184 @@
+{
+  "recorded_at": "2026-09-06T16:44:29.655410+00:00",
+  "platform": "Linux-6.8.0-88-generic-x86_64-with-glibc2.39",
+  "data_root": "/root/commonware-data",
+  "disk_usage": {
+    "total": 908552425472,
+    "used": 6802362368,
+    "free": 855522701312
+  },
+  "commands": {
+    "uname -a": {
+      "exit_code": 0,
+      "stdout": "Linux commonware-bench-20260906 6.8.0-88-generic #89-Ubuntu SMP PREEMPT_DYNAMIC Sat Oct 11 01:02:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\n",
+      "stderr": ""
+    },
+    "rustc +1.98.0 -Vv": {
+      "exit_code": 0,
+      "stdout": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.0\nLLVM version: 22.1.8\n",
+      "stderr": ""
+    },
+    "cargo +1.98.0 -V": {
+      "exit_code": 0,
+      "stdout": "cargo 1.98.0 (797e8a9bc 2026-08-05)\n",
+      "stderr": ""
+    },
+    "git rev-parse HEAD": {
+      "exit_code": 0,
+      "stdout": "73509b407aca65e3ad9bb2c6d34e4dc0e0c216a3\n",
+      "stderr": ""
+    },
+    "git status --short": {
+      "exit_code": 0,
+      "stdout": " M runtime/Cargo.toml\n?? experiments/\n?? runtime/src/storage/benches/coalescing.rs\n?? runtime/src/storage/benches/coalescing_checks.rs\n?? runtime/src/storage/benches/paged_coalescing.rs\n",
+      "stderr": ""
+    },
+    "ps -axo pid,comm,%cpu,%mem": {
+      "exit_code": 0,
+      "stdout": "    PID COMMAND         %CPU %MEM\n      1 systemd          3.0  0.0\n      2 kthreadd         0.0  0.0\n      3 pool_workqueue_  0.0  0.0\n      4 kworker/R-rcu_g  0.0  0.0\n      5 kworker/R-rcu_p  0.0  0.0\n      6 kworker/R-slub_  0.0  0.0\n      7 kworker/R-netns  0.0  0.0\n      8 kworker/0:0-cgr  0.0  0.0\n     10 kworker/0:0H-ev  0.0  0.0\n     11 kworker/u32:0-b  0.0  0.0\n     12 kworker/R-mm_pe  0.0  0.0\n     13 rcu_tasks_kthre  0.0  0.0\n     14 rcu_tasks_rude_  0.0  0.0\n     15 rcu_tasks_trace  0.0  0.0\n     16 ksoftirqd/0      0.0  0.0\n     17 rcu_preempt      0.0  0.0\n     18 migration/0      0.0  0.0\n     19 idle_inject/0    0.0  0.0\n     20 cpuhp/0          0.0  0.0\n     21 cpuhp/1          0.0  0.0\n     22 idle_inject/1    0.0  0.0\n     23 migration/1      0.0  0.0\n     24 ksoftirqd/1      0.0  0.0\n     26 kworker/1:0H-ev  0.0  0.0\n     27 cpuhp/2          0.0  0.0\n     28 idle_inject/2    0.0  0.0\n     29 migration/2      0.0  0.0\n     30 ksoftirqd/2      0.0  0.0\n     32 kworker/2:0H-ev  0.0  0.0\n     33 cpuhp/3          0.0  0.0\n     34 idle_inject/3    0.0  0.0\n     35 migration/3      0.0  0.0\n     36 ksoftirqd/3      0.0  0.0\n     38 kworker/3:0H-ev  0.0  0.0\n     39 cpuhp/4          0.0  0.0\n     40 idle_inject/4    0.0  0.0\n     41 migration/4      0.0  0.0\n     42 ksoftirqd/4      0.0  0.0\n     44 kworker/4:0H-ev  0.0  0.0\n     45 cpuhp/5          0.0  0.0\n     46 idle_inject/5    0.0  0.0\n     47 migration/5      0.0  0.0\n     48 ksoftirqd/5      0.0  0.0\n     49 kworker/5:0-eve  0.0  0.0\n     50 kworker/5:0H-ev  0.0  0.0\n     51 cpuhp/6          0.0  0.0\n     52 idle_inject/6    0.0  0.0\n     53 migration/6      0.0  0.0\n     54 ksoftirqd/6      0.0  0.0\n     56 kworker/6:0H-ev  0.0  0.0\n     57 cpuhp/7          0.0  0.0\n     58 idle_inject/7    0.0  0.0\n     59 migration/7      0.0  0.0\n     60 ksoftirqd/7      0.0  0.0\n     62 kworker/7:0H-ev  0.0  0.0\n     63 cpuhp/8          0.0  0.0\n     64 idle_inject/8    0.0  0.0\n     65 migration/8      0.0  0.0\n     66 ksoftirqd/8      0.0  0.0\n     68 kworker/8:0H-ev  0.0  0.0\n     69 cpuhp/9          0.0  0.0\n     70 idle_inject/9    0.0  0.0\n     71 migration/9      0.0  0.0\n     72 ksoftirqd/9      0.0  0.0\n     74 kworker/9:0H-ev  0.0  0.0\n     75 cpuhp/10         0.0  0.0\n     76 idle_inject/10   0.0  0.0\n     77 migration/10     0.0  0.0\n     78 ksoftirqd/10     0.0  0.0\n     79 kworker/10:0-cg  0.1  0.0\n     80 kworker/10:0H-e  0.0  0.0\n     81 cpuhp/11         0.0  0.0\n     82 idle_inject/11   0.0  0.0\n     83 migration/11     0.0  0.0\n     84 ksoftirqd/11     0.0  0.0\n     86 kworker/11:0H-e  0.0  0.0\n     87 cpuhp/12         0.0  0.0\n     88 idle_inject/12   0.0  0.0\n     89 migration/12     0.0  0.0\n     90 ksoftirqd/12     0.0  0.0\n     92 kworker/12:0H-e  0.0  0.0\n     93 cpuhp/13         0.0  0.0\n     94 idle_inject/13   0.0  0.0\n     95 migration/13     0.0  0.0\n     96 ksoftirqd/13     0.0  0.0\n     98 kworker/13:0H-e  0.0  0.0\n     99 cpuhp/14         0.0  0.0\n    100 idle_inject/14   0.0  0.0\n    101 migration/14     0.0  0.0\n    102 ksoftirqd/14     0.0  0.0\n    103 kworker/14:0-ev  0.0  0.0\n    104 kworker/14:0H-e  0.0  0.0\n    105 cpuhp/15         0.0  0.0\n    106 idle_inject/15   0.0  0.0\n    107 migration/15     0.0  0.0\n    108 ksoftirqd/15     0.0  0.0\n    109 kworker/15:0-cg  0.0  0.0\n    110 kworker/15:0H-e  0.0  0.0\n    113 kdevtmpfs        0.0  0.0\n    114 kworker/R-inet_  0.0  0.0\n    115 kauditd          0.0  0.0\n    116 khungtaskd       0.0  0.0\n    117 oom_reaper       0.0  0.0\n    118 kworker/u33:1-f  0.0  0.0\n    119 kworker/R-write  0.0  0.0\n    121 kcompactd0       0.0  0.0\n    122 ksmd             0.0  0.0\n    123 khugepaged       0.0  0.0\n    124 kworker/R-kinte  0.0  0.0\n    125 kworker/R-kbloc  0.0  0.0\n    126 kworker/R-blkcg  0.0  0.0\n    127 irq/9-acpi       0.0  0.0\n    131 kworker/6:1-cgr  0.0  0.0\n    132 kworker/R-tpm_d  0.0  0.0\n    133 kworker/R-ata_s  0.0  0.0\n    134 kworker/R-md     0.0  0.0\n    135 kworker/R-md_bi  0.0  0.0\n    136 kworker/R-edac-  0.0  0.0\n    137 kworker/u32:1-e  0.1  0.0\n    138 kworker/R-devfr  0.0  0.0\n    139 watchdogd        0.0  0.0\n    142 kworker/0:1H-kb  0.0  0.0\n    144 kworker/12:1-ev  0.0  0.0\n    146 kworker/9:1-eve  0.0  0.0\n    147 irq/26-AMD-Vi0-  0.0  0.0\n    148 irq/27-AMD-Vi0-  0.0  0.0\n    149 irq/28-AMD-Vi0-  0.0  0.0\n    150 irq/29-AMD-Vi1-  0.0  0.0\n    151 irq/30-AMD-Vi1-  0.0  0.0\n    152 irq/31-AMD-Vi1-  0.0  0.0\n    153 irq/32-AMD-Vi2-  0.0  0.0\n    154 irq/33-AMD-Vi2-  0.0  0.0\n    155 irq/34-AMD-Vi2-  0.0  0.0\n    156 kswapd0          0.0  0.0\n    157 ecryptfs-kthrea  0.0  0.0\n    158 kworker/7:1-eve  0.0  0.0\n    159 kworker/R-kthro  0.0  0.0\n    160 kworker/9:2-cgr  0.0  0.0\n    161 irq/45-pciehp    0.0  0.0\n    162 irq/46-pciehp    0.0  0.0\n    163 kworker/0:2-cgr  0.1  0.0\n    164 irq/47-pciehp    0.0  0.0\n    165 irq/48-pciehp    0.0  0.0\n    167 kworker/13:1-ev  0.0  0.0\n    170 kworker/R-acpi_  0.0  0.0\n    171 hwrng            0.0  0.0\n    172 kworker/R-mld    0.0  0.0\n    173 kworker/1:1H-kb  0.0  0.0\n    174 kworker/R-ipv6_  0.0  0.0\n    181 kworker/R-kstrp  0.0  0.0\n    183 kworker/u34:1-w  0.0  0.0\n    184 kworker/u35:0    0.0  0.0\n    185 kworker/u36:0    0.0  0.0\n    186 kworker/u37:0    0.0  0.0\n    191 kworker/R-crypt  0.0  0.0\n    202 kworker/R-charg  0.0  0.0\n    230 kworker/5:1H-kb  0.0  0.0\n    241 kworker/7:1H-kb  0.0  0.0\n    242 kworker/2:1H-kb  0.0  0.0\n    243 kworker/12:1H-k  0.0  0.0\n    244 kworker/4:1H-kb  0.0  0.0\n    245 kworker/14:1H-k  0.0  0.0\n    248 kworker/11:1H-k  0.0  0.0\n    251 kworker/15:1H-k  0.0  0.0\n    264 kworker/13:1H-k  0.0  0.0\n    265 kworker/10:1H-k  0.0  0.0\n    267 kworker/6:1H-kb  0.0  0.0\n    268 kworker/3:1H-kb  0.0  0.0\n    269 kworker/9:1H-kb  0.0  0.0\n    270 kworker/8:1H-kb  0.0  0.0\n    304 kworker/11:2-cg  0.0  0.0\n    305 kworker/R-nvme-  0.0  0.0\n    306 kworker/R-nvme-  0.0  0.0\n    307 kworker/R-nvme-  0.0  0.0\n    308 kworker/R-nvme-  0.0  0.0\n    315 kworker/10:2-ev  0.0  0.0\n    316 kworker/u34:3-f  0.0  0.0\n    333 kworker/R-bnxt_  0.0  0.0\n    336 ptp0             0.0  0.0\n    338 kworker/u33:3-f  0.0  0.0\n    339 md0_raid1        0.0  0.0\n    340 md1_raid1        2.1  0.0\n    385 kworker/R-raid5  0.0  0.0\n    433 jbd2/md1-8       0.2  0.0\n    434 kworker/R-ext4-  0.0  0.0\n    469 kworker/13:3-ev  0.0  0.0\n    504 kworker/1:2-mm_  0.0  0.0\n    505 kworker/2:2-cgr  0.0  0.0\n    506 kworker/4:2-eve  0.0  0.0\n    511 systemd-journal  0.0  0.0\n    522 kworker/8:2-md   0.0  0.0\n    525 kworker/12:2-cg  0.0  0.0\n    528 kworker/5:2-eve  0.0  0.0\n    530 kworker/R-kmpat  0.0  0.0\n    531 kworker/R-kmpat  0.0  0.0\n    536 kworker/7:2-mm_  0.0  0.0\n    582 systemd-udevd    0.0  0.0\n    583 psimon           0.0  0.0\n    702 kworker/R-ipmi-  0.0  0.0\n    719 kipmi0           0.0  0.0\n    766 jbd2/md0-8       0.0  0.0\n    767 kworker/R-ext4-  0.0  0.0\n    916 systemd-resolve  0.0  0.0\n    917 systemd-timesyn  0.0  0.0\n    948 kworker/u34:0-f  0.0  0.0\n    989 kworker/R-cfg80  0.0  0.0\n   1021 kworker/11:0-mm  0.0  0.0\n   1030 kworker/R-tls-s  0.0  0.0\n   1037 kworker/u33:2-e  0.0  0.0\n   1138 systemd-network  0.0  0.0\n   1161 kworker/6:2-cgr  0.0  0.0\n   1186 cron             0.0  0.0\n   1187 dbus-daemon      0.0  0.0\n   1193 polkitd          0.0  0.0\n   1269 systemd-logind   0.0  0.0\n   1297 udisksd          0.1  0.0\n   1310 rsyslogd         0.0  0.0\n   1312 kworker/15:2-cg  0.0  0.0\n   1370 ModemManager     0.0  0.0\n   1374 kworker/14:2-ev  0.0  0.0\n   1388 unattended-upgr  0.0  0.0\n   1421 agetty           0.0  0.0\n   1431 agetty           0.0  0.0\n   1434 sshd             0.0  0.0\n   1439 kworker/3:2-mm_  0.1  0.0\n   1483 kworker/4:0-cgr  0.0  0.0\n   1490 kworker/8:1      0.0  0.0\n   1522 kworker/2:0-eve  0.1  0.0\n   1660 kworker/1:0-cgr  0.0  0.0\n   2021 kworker/u34:2-f  0.0  0.0\n   3109 kworker/u33:0-e  0.0  0.0\n   4000 kworker/3:1-eve  0.0  0.0\n  13530 multipathd       0.0  0.0\n  16756 kworker/6:0-eve  0.0  0.0\n  19153 kworker/11:1     0.0  0.0\n  19154 kworker/11:3-cg  0.0  0.0\n  19615 kworker/0:1-eve  0.0  0.0\n  20906 kworker/u34:4-f  0.0  0.0\n  22623 kworker/u33:4-e  0.4  0.0\n  22625 kworker/12:0     0.0  0.0\n  23494 kworker/15:1-mm  0.0  0.0\n  23500 kworker/u34:5-e  0.0  0.0\n  23609 kworker/10:1     0.0  0.0\n  23610 kworker/10:3     0.0  0.0\n  23615 kworker/0:3      0.0  0.0\n  23619 kworker/9:0      0.0  0.0\n  23620 kworker/9:3-cgr  0.0  0.0\n  23624 psimon           0.0  0.0\n  23626 systemd          0.7  0.0\n  23627 (sd-pam)         0.0  0.0\n  23694 kworker/3:0      0.0  0.0\n  23745 bash             0.0  0.0\n  23751 python3         33.3  0.0\n  23779 ps               100  0.0\n",
+      "stderr": ""
+    },
+    "lscpu -J": {
+      "exit_code": 0,
+      "stdout": "{\n   \"lscpu\": [\n      {\n         \"field\": \"Architecture:\",\n         \"data\": \"x86_64\"\n      },{\n         \"field\": \"CPU op-mode(s):\",\n         \"data\": \"32-bit, 64-bit\"\n      },{\n         \"field\": \"Address sizes:\",\n         \"data\": \"46 bits physical, 57 bits virtual\"\n      },{\n         \"field\": \"Byte Order:\",\n         \"data\": \"Little Endian\"\n      },{\n         \"field\": \"CPU(s):\",\n         \"data\": \"16\"\n      },{\n         \"field\": \"On-line CPU(s) list:\",\n         \"data\": \"0-15\"\n      },{\n         \"field\": \"Vendor ID:\",\n         \"data\": \"AuthenticAMD\"\n      },{\n         \"field\": \"BIOS Vendor ID:\",\n         \"data\": \"AMD\"\n      },{\n         \"field\": \"Model name:\",\n         \"data\": \"AMD EPYC 8024P 8-Core Processor\"\n      },{\n         \"field\": \"BIOS Model name:\",\n         \"data\": \"AMD EPYC 8024P 8-Core Processor                  CPU @ 2.4GHz\"\n      },{\n         \"field\": \"BIOS CPU family:\",\n         \"data\": \"107\"\n      },{\n         \"field\": \"CPU family:\",\n         \"data\": \"25\"\n      },{\n         \"field\": \"Model:\",\n         \"data\": \"160\"\n      },{\n         \"field\": \"Thread(s) per core:\",\n         \"data\": \"2\"\n      },{\n         \"field\": \"Core(s) per socket:\",\n         \"data\": \"8\"\n      },{\n         \"field\": \"Socket(s):\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"Stepping:\",\n         \"data\": \"2\"\n      },{\n         \"field\": \"Frequency boost:\",\n         \"data\": \"enabled\"\n      },{\n         \"field\": \"CPU(s) scaling MHz:\",\n         \"data\": \"117%\"\n      },{\n         \"field\": \"CPU max MHz:\",\n         \"data\": \"2400.0000\"\n      },{\n         \"field\": \"CPU min MHz:\",\n         \"data\": \"1500.0000\"\n      },{\n         \"field\": \"BogoMIPS:\",\n         \"data\": \"4792.83\"\n      },{\n         \"field\": \"Flags:\",\n         \"data\": \"fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd amd_ppin cppc amd_ibpb_ret arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid overflow_recov succor smca fsrm flush_l1d sev sev_es debug_swap ibpb_exit_to_user\"\n      },{\n         \"field\": \"Virtualization:\",\n         \"data\": \"AMD-V\"\n      },{\n         \"field\": \"L1d cache:\",\n         \"data\": \"256 KiB (8 instances)\"\n      },{\n         \"field\": \"L1i cache:\",\n         \"data\": \"256 KiB (8 instances)\"\n      },{\n         \"field\": \"L2 cache:\",\n         \"data\": \"8 MiB (8 instances)\"\n      },{\n         \"field\": \"L3 cache:\",\n         \"data\": \"32 MiB (2 instances)\"\n      },{\n         \"field\": \"NUMA node(s):\",\n         \"data\": \"1\"\n      },{\n         \"field\": \"NUMA node0 CPU(s):\",\n         \"data\": \"0-15\"\n      },{\n         \"field\": \"Vulnerability Gather data sampling:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Itlb multihit:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability L1tf:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Mds:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Meltdown:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Mmio stale data:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Reg file data sampling:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Retbleed:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Spec rstack overflow:\",\n         \"data\": \"Mitigation; Safe RET\"\n      },{\n         \"field\": \"Vulnerability Spec store bypass:\",\n         \"data\": \"Mitigation; Speculative Store Bypass disabled via prctl\"\n      },{\n         \"field\": \"Vulnerability Spectre v1:\",\n         \"data\": \"Mitigation; usercopy/swapgs barriers and __user pointer sanitization\"\n      },{\n         \"field\": \"Vulnerability Spectre v2:\",\n         \"data\": \"Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\"\n      },{\n         \"field\": \"Vulnerability Srbds:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Tsx async abort:\",\n         \"data\": \"Not affected\"\n      },{\n         \"field\": \"Vulnerability Vmscape:\",\n         \"data\": \"Mitigation; IBPB before exit to userspace\"\n      }\n   ]\n}\n",
+      "stderr": ""
+    },
+    "lscpu -e=CPU,CORE,SOCKET,NODE,ONLINE": {
+      "exit_code": 0,
+      "stdout": "CPU CORE SOCKET NODE ONLINE\n  0    0      0    0    yes\n  1    1      0    0    yes\n  2    2      0    0    yes\n  3    3      0    0    yes\n  4    4      0    0    yes\n  5    5      0    0    yes\n  6    6      0    0    yes\n  7    7      0    0    yes\n  8    0      0    0    yes\n  9    1      0    0    yes\n 10    2      0    0    yes\n 11    3      0    0    yes\n 12    4      0    0    yes\n 13    5      0    0    yes\n 14    6      0    0    yes\n 15    7      0    0    yes\n",
+      "stderr": ""
+    },
+    "systemd-detect-virt": {
+      "exit_code": 1,
+      "stdout": "none\n",
+      "stderr": ""
+    },
+    "findmnt -T /root/commonware-data -J": {
+      "exit_code": 0,
+      "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/md1\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime,errors=remount-ro,stripe=32\"\n      }\n   ]\n}\n",
+      "stderr": ""
+    },
+    "lsblk -J -o NAME,TYPE,PKNAME,MODEL,SIZE,FSTYPE,MOUNTPOINTS,ROTA": {
+      "exit_code": 0,
+      "stdout": "{\n   \"blockdevices\": [\n      {\n         \"name\": \"nvme1n1\",\n         \"type\": \"disk\",\n         \"pkname\": null,\n         \"model\": \"Dell DC NVMe PM9A3 RI U.2 960GB\",\n         \"size\": \"894.3G\",\n         \"fstype\": null,\n         \"mountpoints\": [\n             null\n         ],\n         \"rota\": false,\n         \"children\": [\n            {\n               \"name\": \"nvme1n1p1\",\n               \"type\": \"part\",\n               \"pkname\": \"nvme1n1\",\n               \"model\": null,\n               \"size\": \"4G\",\n               \"fstype\": \"swap\",\n               \"mountpoints\": [\n                   null\n               ],\n               \"rota\": false\n            },{\n               \"name\": \"nvme1n1p2\",\n               \"type\": \"part\",\n               \"pkname\": \"nvme1n1\",\n               \"model\": null,\n               \"size\": \"512M\",\n               \"fstype\": \"linux_raid_member\",\n               \"mountpoints\": [\n                   null\n               ],\n               \"rota\": false,\n               \"children\": [\n                  {\n                     \"name\": \"md0\",\n                     \"type\": \"raid1\",\n                     \"pkname\": \"nvme1n1p2\",\n                     \"model\": null,\n                     \"size\": \"511M\",\n                     \"fstype\": \"ext4\",\n                     \"mountpoints\": [\n                         \"/boot\"\n                     ],\n                     \"rota\": false\n                  }\n               ]\n            },{\n               \"name\": \"nvme1n1p3\",\n               \"type\": \"part\",\n               \"pkname\": \"nvme1n1\",\n               \"model\": null,\n               \"size\": \"860.9G\",\n               \"fstype\": \"linux_raid_member\",\n               \"mountpoints\": [\n                   null\n               ],\n               \"rota\": false,\n               \"children\": [\n                  {\n                     \"name\": \"md1\",\n                     \"type\": \"raid1\",\n                     \"pkname\": \"nvme1n1p3\",\n                     \"model\": null,\n                     \"size\": \"860.7G\",\n                     \"fstype\": \"ext4\",\n                     \"mountpoints\": [\n                         \"/\"\n                     ],\n                     \"rota\": false\n                  }\n               ]\n            }\n         ]\n      },{\n         \"name\": \"nvme0n1\",\n         \"type\": \"disk\",\n         \"pkname\": null,\n         \"model\": \"Dell DC NVMe PM9A3 RI U.2 960GB\",\n         \"size\": \"894.3G\",\n         \"fstype\": null,\n         \"mountpoints\": [\n             null\n         ],\n         \"rota\": false,\n         \"children\": [\n            {\n               \"name\": \"nvme0n1p1\",\n               \"type\": \"part\",\n               \"pkname\": \"nvme0n1\",\n               \"model\": null,\n               \"size\": \"512M\",\n               \"fstype\": \"vfat\",\n               \"mountpoints\": [\n                   \"/boot/efi\"\n               ],\n               \"rota\": false\n            },{\n               \"name\": \"nvme0n1p2\",\n               \"type\": \"part\",\n               \"pkname\": \"nvme0n1\",\n               \"model\": null,\n               \"size\": \"4G\",\n               \"fstype\": \"swap\",\n               \"mountpoints\": [\n                   null\n               ],\n               \"rota\": false\n            },{\n               \"name\": \"nvme0n1p3\",\n               \"type\": \"part\",\n               \"pkname\": \"nvme0n1\",\n               \"model\": null,\n               \"size\": \"512M\",\n               \"fstype\": \"linux_raid_member\",\n               \"mountpoints\": [\n                   null\n               ],\n               \"rota\": false,\n               \"children\": [\n                  {\n                     \"name\": \"md0\",\n                     \"type\": \"raid1\",\n                     \"pkname\": \"nvme0n1p3\",\n                     \"model\": null,\n                     \"size\": \"511M\",\n                     \"fstype\": \"ext4\",\n                     \"mountpoints\": [\n                         \"/boot\"\n                     ],\n                     \"rota\": false\n                  }\n               ]\n            },{\n               \"name\": \"nvme0n1p4\",\n               \"type\": \"part\",\n               \"pkname\": \"nvme0n1\",\n               \"model\": null,\n               \"size\": \"860.9G\",\n               \"fstype\": \"linux_raid_member\",\n               \"mountpoints\": [\n                   null\n               ],\n               \"rota\": false,\n               \"children\": [\n                  {\n                     \"name\": \"md1\",\n                     \"type\": \"raid1\",\n                     \"pkname\": \"nvme0n1p4\",\n                     \"model\": null,\n                     \"size\": \"860.7G\",\n                     \"fstype\": \"ext4\",\n                     \"mountpoints\": [\n                         \"/\"\n                     ],\n                     \"rota\": false\n                  }\n               ]\n            }\n         ]\n      }\n   ]\n}\n",
+      "stderr": ""
+    },
+    "cat /proc/mdstat": {
+      "exit_code": 0,
+      "stdout": "Personalities : [raid1] [raid0] [raid6] [raid5] [raid4] [raid10] \nmd1 : active raid1 nvme1n1p3[1] nvme0n1p4[0]\n      902550528 blocks super 1.2 [2/2] [UU]\n      \tresync=PENDING\n      bitmap: 6/7 pages [24KB], 65536KB chunk\n\nmd0 : active raid1 nvme1n1p2[1] nvme0n1p3[0]\n      523264 blocks super 1.2 [2/2] [UU]\n      \nunused devices: <none>\n",
+      "stderr": ""
+    },
+    "cat /proc/meminfo": {
+      "exit_code": 0,
+      "stdout": "MemTotal:       65137712 kB\nMemFree:        58771412 kB\nMemAvailable:   63641700 kB\nBuffers:          482304 kB\nCached:          4825396 kB\nSwapCached:            0 kB\nActive:           790848 kB\nInactive:        4547948 kB\nActive(anon):      52204 kB\nInactive(anon):        0 kB\nActive(file):     738644 kB\nInactive(file):  4547948 kB\nUnevictable:       34176 kB\nMlocked:           27284 kB\nSwapTotal:             0 kB\nSwapFree:              0 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:               188 kB\nWriteback:             0 kB\nAnonPages:         65272 kB\nMapped:            56432 kB\nShmem:             12352 kB\nKReclaimable:     311304 kB\nSlab:             481988 kB\nSReclaimable:     311304 kB\nSUnreclaim:       170684 kB\nKernelStack:        4656 kB\nPageTables:         1868 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    32568856 kB\nCommitted_AS:     260376 kB\nVmallocTotal:   13743895347199 kB\nVmallocUsed:       26504 kB\nVmallocChunk:          0 kB\nPercpu:            15168 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nUnaccepted:            0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:      374320 kB\nDirectMap2M:     5206016 kB\nDirectMap1G:    60817408 kB\n",
+      "stderr": ""
+    },
+    "cat /proc/mounts": {
+      "exit_code": 0,
+      "stdout": "sysfs /sys sysfs rw,nosuid,nodev,noexec,relatime 0 0\nproc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\nudev /dev devtmpfs rw,nosuid,relatime,size=32527956k,nr_inodes=8131989,mode=755,inode64 0 0\ndevpts /dev/pts devpts rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000 0 0\ntmpfs /run tmpfs rw,nosuid,nodev,noexec,relatime,size=6513772k,mode=755,inode64 0 0\nefivarfs /sys/firmware/efi/efivars efivarfs rw,nosuid,nodev,noexec,relatime 0 0\n/dev/md1 / ext4 rw,relatime,errors=remount-ro,stripe=32 0 0\nsecurityfs /sys/kernel/security securityfs rw,nosuid,nodev,noexec,relatime 0 0\ntmpfs /dev/shm tmpfs rw,nosuid,nodev,inode64 0 0\ntmpfs /run/lock tmpfs rw,nosuid,nodev,noexec,relatime,size=5120k,inode64 0 0\ncgroup2 /sys/fs/cgroup cgroup2 rw,nosuid,nodev,noexec,relatime,nsdelegate,memory_recursiveprot 0 0\npstore /sys/fs/pstore pstore rw,nosuid,nodev,noexec,relatime 0 0\nbpf /sys/fs/bpf bpf rw,nosuid,nodev,noexec,relatime,mode=700 0 0\nsystemd-1 /proc/sys/fs/binfmt_misc autofs rw,relatime,fd=32,pgrp=1,timeout=0,minproto=5,maxproto=5,direct,pipe_ino=6234 0 0\nhugetlbfs /dev/hugepages hugetlbfs rw,nosuid,nodev,relatime,pagesize=2M 0 0\nmqueue /dev/mqueue mqueue rw,nosuid,nodev,noexec,relatime 0 0\ndebugfs /sys/kernel/debug debugfs rw,nosuid,nodev,noexec,relatime 0 0\ntracefs /sys/kernel/tracing tracefs rw,nosuid,nodev,noexec,relatime 0 0\nfusectl /sys/fs/fuse/connections fusectl rw,nosuid,nodev,noexec,relatime 0 0\nconfigfs /sys/kernel/config configfs rw,nosuid,nodev,noexec,relatime 0 0\n/dev/md0 /boot ext4 rw,relatime,stripe=128 0 0\n/dev/nvme0n1p1 /boot/efi vfat rw,relatime,fmask=0077,dmask=0077,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro 0 0\nbinfmt_misc /proc/sys/fs/binfmt_misc binfmt_misc rw,nosuid,nodev,noexec,relatime 0 0\ntmpfs /run/user/1000 tmpfs rw,nosuid,nodev,relatime,size=6513768k,nr_inodes=1628442,mode=700,uid=1000,gid=1000,inode64 0 0\n",
+      "stderr": ""
+    },
+    "perf stat -e task-clock,cycles,instructions true": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "\n Performance counter stats for 'true':\n\n              0.39 msec task-clock                       #    0.507 CPUs utilized             \n           1154080      cycles                           #    2.963 GHz                       \n            978243      instructions                     #    0.85  insn per cycle            \n\n       0.000768881 seconds time elapsed\n\n       0.000844000 seconds user\n       0.000000000 seconds sys\n\n\n"
+    },
+    "nvme get-feature /dev/nvme1 -f 6 -H": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "NVMe status: Invalid Field in Command: A reserved coded value or an unsupported value in a defined field(0x2)\n"
+    },
+    "nvme get-feature /dev/nvme0 -f 6 -H": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "NVMe status: Invalid Field in Command: A reserved coded value or an unsupported value in a defined field(0x2)\n"
+    }
+  },
+  "sysfs": {
+    "/sys/block/loop1/queue/write_cache": "write through",
+    "/sys/block/nvme0n1/queue/write_cache": "write through",
+    "/sys/block/loop6/queue/write_cache": "write through",
+    "/sys/block/loop4/queue/write_cache": "write through",
+    "/sys/block/md0/queue/write_cache": "write back",
+    "/sys/block/loop2/queue/write_cache": "write through",
+    "/sys/block/loop0/queue/write_cache": "write through",
+    "/sys/block/loop7/queue/write_cache": "write through",
+    "/sys/block/nvme1n1/queue/write_cache": "write through",
+    "/sys/block/loop5/queue/write_cache": "write through",
+    "/sys/block/md1/queue/write_cache": "write back",
+    "/sys/block/loop3/queue/write_cache": "write through",
+    "/sys/block/loop1/queue/fua": "0",
+    "/sys/block/nvme0n1/queue/fua": "0",
+    "/sys/block/loop6/queue/fua": "0",
+    "/sys/block/loop4/queue/fua": "0",
+    "/sys/block/md0/queue/fua": "1",
+    "/sys/block/loop2/queue/fua": "0",
+    "/sys/block/loop0/queue/fua": "0",
+    "/sys/block/loop7/queue/fua": "0",
+    "/sys/block/nvme1n1/queue/fua": "0",
+    "/sys/block/loop5/queue/fua": "0",
+    "/sys/block/md1/queue/fua": "1",
+    "/sys/block/loop3/queue/fua": "0",
+    "/sys/block/loop1/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/nvme0n1/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/loop6/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/loop4/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/loop2/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/loop0/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/loop7/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/nvme1n1/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/loop5/queue/scheduler": "[none] mq-deadline",
+    "/sys/block/loop3/queue/scheduler": "[none] mq-deadline",
+    "/sys/devices/system/cpu/cpu11/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu9/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu7/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu5/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu14/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu12/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu10/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu8/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu6/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu4/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu15/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu13/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor": "performance",
+    "/sys/devices/system/cpu/smt/active": "1",
+    "/sys/devices/system/cpu/cpufreq/boost": "1",
+    "/proc/sys/kernel/perf_event_paranoid": "4",
+    "/proc/sys/vm/dirty_background_bytes": "0",
+    "/proc/sys/vm/dirty_background_ratio": "10",
+    "/proc/sys/vm/dirty_bytes": "0",
+    "/proc/sys/vm/dirty_expire_centisecs": "3000",
+    "/proc/sys/vm/dirty_ratio": "20",
+    "/proc/sys/vm/dirty_writeback_centisecs": "500",
+    "/sys/fs/cgroup/cpuset.cpus.effective": "0-15"
+  },
+  "nvme": {
+    "nvme1": {
+      "mn": "Dell DC NVMe PM9A3 RI U.2 960GB         ",
+      "fr": "1.0.0   ",
+      "vid": 5197,
+      "ssvid": 4136,
+      "vwc": 6,
+      "oncs": 95,
+      "fna": 4
+    },
+    "nvme0": {
+      "mn": "Dell DC NVMe PM9A3 RI U.2 960GB         ",
+      "fr": "1.0.0   ",
+      "vid": 5197,
+      "ssvid": 4136,
+      "vwc": 6,
+      "oncs": 95,
+      "fna": 4
+    }
+  },
+  "plan_sha256": {
+    "backend-grid.json": "6d847cc3e384a4d7d99c627b30bacbbf89d7ff58791607612338aca33bf97b88",
+    "backend-aa.json": "922f8a5182a22c7ca44c2b2e84745daa1dacd8559bd41c89b9381643b181435f",
+    "backend-smoke.json": "729b949091d5d31d1a77206ec225f6103e0b56a06bfec50aa4bf2f7910281ff3"
+  }
+}

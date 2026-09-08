@@ -1,0 +1,43 @@
+{
+  "name": "backend-aa",
+  "order_seed": 20260911,
+  "data_seed": 7400,
+  "repetitions": 6,
+  "settle_seconds": 0.25,
+  "variants": {
+    "vectored": {
+      "strategy": "vectored",
+      "binary": "vectored"
+    },
+    "baseline-repeat": {
+      "strategy": "vectored",
+      "binary": "vectored"
+    }
+  },
+  "defaults": {
+    "layer": "runtime",
+    "duration_ms": 1000,
+    "warmup_ms": 200,
+    "file_mib": 64,
+    "writers": 1,
+    "source_mib": 0
+  },
+  "cases": [
+    {
+      "id": "bytes-4096-segments-256",
+      "write_bytes": 4096,
+      "segments": 256
+    },
+    {
+      "id": "bytes-65536-segments-256",
+      "write_bytes": 65536,
+      "segments": 256
+    },
+    {
+      "id": "sync-bytes-65536-segments-8",
+      "write_bytes": 65536,
+      "segments": 8,
+      "durable": true
+    }
+  ]
+}

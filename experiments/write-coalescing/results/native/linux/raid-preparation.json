@@ -1,0 +1,16 @@
+{
+  "recorded_at": "2026-09-06T16:44:24.592714+00:00",
+  "reason": "initial background RAID synchronization interferes with storage timing on this disposable server",
+  "before": {
+    "sync_action": "resync",
+    "sync_completed": "652427008 / 1805101056",
+    "resync_start": "564247040"
+  },
+  "mdstat_before": "Personalities : [raid1] [raid0] [raid6] [raid5] [raid4] [raid10] \nmd1 : active raid1 nvme1n1p3[1] nvme0n1p4[0]\n      902550528 blocks super 1.2 [2/2] [UU]\n      [=======>.............]  resync = 36.1% (326413312/902550528) finish=47.9min speed=200048K/sec\n      bitmap: 6/7 pages [24KB], 65536KB chunk\n\nmd0 : active raid1 nvme1n1p2[1] nvme0n1p3[0]\n      523264 blocks super 1.2 [2/2] [UU]\n      \nunused devices: <none>\n",
+  "after": {
+    "sync_action": "frozen",
+    "sync_completed": "none",
+    "resync_start": "652826624"
+  },
+  "mdstat_after": "Personalities : [raid1] [raid0] [raid6] [raid5] [raid4] [raid10] \nmd1 : active raid1 nvme1n1p3[1] nvme0n1p4[0]\n      902550528 blocks super 1.2 [2/2] [UU]\n      \tresync=PENDING\n      bitmap: 6/7 pages [24KB], 65536KB chunk\n\nmd0 : active raid1 nvme1n1p2[1] nvme0n1p3[0]\n      523264 blocks super 1.2 [2/2] [UU]\n      \nunused devices: <none>\n"
+}

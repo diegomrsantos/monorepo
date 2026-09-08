@@ -1,0 +1,69 @@
+{
+  "recorded_at": "2026-09-06T16:27:39.108245+00:00",
+  "platform": "macOS-26.5.2-arm64-arm-64bit-Mach-O",
+  "data_root": "/private/tmp/commonware-scaleway-20260906/macos-data",
+  "disk_usage": {
+    "total": 994662584320,
+    "used": 917679091712,
+    "free": 76983492608
+  },
+  "commands": {
+    "uname -a": {
+      "exit_code": 0,
+      "stdout": "Darwin Diegos-MacBook-Pro-318.local 25.5.0 Darwin Kernel Version 25.5.0: Tue Jun  9 22:18:58 PDT 2026; root:xnu-12377.121.10~1/RELEASE_ARM64_T6000 arm64\n",
+      "stderr": ""
+    },
+    "rustc +1.98.0 -Vv": {
+      "exit_code": 0,
+      "stdout": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: aarch64-apple-darwin\nrelease: 1.98.0\nLLVM version: 22.1.8\n",
+      "stderr": ""
+    },
+    "cargo +1.98.0 -V": {
+      "exit_code": 0,
+      "stdout": "cargo 1.98.0 (797e8a9bc 2026-08-05)\n",
+      "stderr": ""
+    },
+    "git rev-parse HEAD": {
+      "exit_code": 0,
+      "stdout": "73509b407aca65e3ad9bb2c6d34e4dc0e0c216a3\n",
+      "stderr": ""
+    },
+    "git status --short": {
+      "exit_code": 0,
+      "stdout": " M runtime/Cargo.toml\n?? experiments/\n?? runtime/src/storage/benches/coalescing.rs\n?? runtime/src/storage/benches/coalescing_checks.rs\n?? runtime/src/storage/benches/paged_coalescing.rs\n",
+      "stderr": ""
+    },
+    "sysctl machdep.cpu.brand_string hw.memsize hw.physicalcpu hw.logicalcpu hw.perflevel0.physicalcpu hw.perflevel1.physicalcpu": {
+      "exit_code": 0,
+      "stdout": "machdep.cpu.brand_string: Apple M1 Pro\nhw.memsize: 34359738368\nhw.physicalcpu: 10\nhw.logicalcpu: 10\nhw.perflevel0.physicalcpu: 8\nhw.perflevel1.physicalcpu: 2\n",
+      "stderr": ""
+    },
+    "sw_vers": {
+      "exit_code": 0,
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.2\nBuildVersion:\t\t25F84\n",
+      "stderr": ""
+    },
+    "vm_stat": {
+      "exit_code": 0,
+      "stdout": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     5496.\nPages active:                                 635108.\nPages inactive:                               632699.\nPages speculative:                              2247.\nPages throttled:                                   0.\nPages wired down:                             166656.\nPages purgeable:                                4377.\n\"Translation faults\":                      264089200.\nPages copy-on-write:                        15781888.\nPages zero filled:                         555455794.\nPages reactivated:                           8045605.\nPages purged:                                1500020.\nFile-backed pages:                            456339.\nAnonymous pages:                              813715.\nPages stored in compressor:                  1049844.\nPages occupied by compressor:                 600703.\nDecompressions:                              2964425.\nCompressions:                                4800929.\nPageins:                                     5093030.\nPageouts:                                      43588.\nSwapins:                                           0.\nSwapouts:                                          0.\n",
+      "stderr": ""
+    },
+    "df -h /private/tmp/commonware-scaleway-20260906/macos-data": {
+      "exit_code": 0,
+      "stdout": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   819Gi    72Gi    92%    6.1M  752M    1%   /System/Volumes/Data\n",
+      "stderr": ""
+    },
+    "pmset -g batt": {
+      "exit_code": 0,
+      "stdout": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=23855203)\t80%; AC attached; not charging present: true\n",
+      "stderr": ""
+    }
+  },
+  "sysfs": {},
+  "plan_sha256": {
+    "backend-aa.json": "922f8a5182a22c7ca44c2b2e84745daa1dacd8559bd41c89b9381643b181435f",
+    "backend-grid.json": "6d847cc3e384a4d7d99c627b30bacbbf89d7ff58791607612338aca33bf97b88",
+    "backend-smoke.json": "729b949091d5d31d1a77206ec225f6103e0b56a06bfec50aa4bf2f7910281ff3"
+  },
+  "metadata_note": "The process inventory is retained locally with the original capture; omitted from this report artifact."
+}

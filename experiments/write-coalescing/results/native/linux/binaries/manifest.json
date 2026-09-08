@@ -1,0 +1,66 @@
+{
+  "base_revision": "73509b407aca65e3ad9bb2c6d34e4dc0e0c216a3",
+  "backend_source_sha256": "2d1d0fca724481dc6cf46516a5a8d08f2025f6d64886312ff5f3e7722a9818ec",
+  "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)\nbinary: rustc\ncommit-hash: 88d9e12ae178fab0fb5cc050a94da85685d449ea\ncommit-date: 2026-08-18\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.0\nLLVM version: 22.1.8\n",
+  "cargo_lock_sha256": "c1c8e10c7bf33c758d77dd9cc7c8213d00d24e2dab42d8e0296514c919d9ecd3",
+  "runtime_manifest_sha256": "e73d5e0f53b189747ded6f7c2022809ecb4ff878ee7c1b8b7ec9388f1327f40e",
+  "scope": "ordinary Tokio storage backend; fixed policies; no heuristic",
+  "variants": {
+    "vectored": {
+      "binary_sha256": "fa67bdd0cf6865960f2a6c0882b377eede137de2a2b5f4ff9750b9d05db27066",
+      "backend_source_sha256": "2d1d0fca724481dc6cf46516a5a8d08f2025f6d64886312ff5f3e7722a9818ec",
+      "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "bench",
+        "--locked",
+        "-p",
+        "commonware-runtime",
+        "--bench",
+        "storage_coalescing",
+        "--no-run",
+        "--message-format=json"
+      ]
+    },
+    "coalesce": {
+      "binary_sha256": "111790de76930221d7174d646036de56c93f309bee50c07a45e2d22c5b7d22e9",
+      "backend_source_sha256": "47103198c5b1bb5ddb613bbbbed939a5c4a42183e9cc1910738f0bc5ad84da87",
+      "patch_sha256": "bb298b16048890081268bece7d4bf36c4fb4b92104a9190a5041346904529134",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "bench",
+        "--locked",
+        "-p",
+        "commonware-runtime",
+        "--bench",
+        "storage_coalescing",
+        "--no-run",
+        "--message-format=json"
+      ]
+    },
+    "pool": {
+      "binary_sha256": "c5aa2a4ab605738d7075de6ecdfd395599375d735436d9c2828af9abee54c39c",
+      "backend_source_sha256": "9d70d3a570a83494059a8ee12bffe45cce202c31725e8516039424f339e081bf",
+      "patch_sha256": "5d88dac712c7045ae3499b4bb8a7b0f7aaefd1e817d12f7e3ed17beeec531dd9",
+      "command": [
+        "cargo",
+        "+1.98.0",
+        "bench",
+        "--locked",
+        "-p",
+        "commonware-runtime",
+        "--bench",
+        "storage_coalescing",
+        "--no-run",
+        "--message-format=json"
+      ]
+    }
+  },
+  "benchmark_sources": {
+    "runtime/src/storage/benches/coalescing.rs": "5d93dbcbec99b9929640f8e144a35e0fe69027d7840e4a6a77caba40bcc7945c",
+    "runtime/src/storage/benches/coalescing_checks.rs": "857acb778dba690b1c6eb1af6d1d939cf71c252f93545528236328c86a1452a4",
+    "runtime/src/storage/benches/paged_coalescing.rs": "62915434217e1fcf8242f278454e7397c81cbdf7bc1567e198d58b6272f21138"
+  }
+}

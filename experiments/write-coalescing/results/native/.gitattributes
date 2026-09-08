@@ -1,0 +1,6 @@
+# Preserve the exact experimental patches.
+**/*.patch -whitespace
+# Collapse raw records and generated views in the pull request.
+**/*.jsonl linguist-generated=true
+**/*summary.json linguist-generated=true
+throughput-grid.svg linguist-generated=true

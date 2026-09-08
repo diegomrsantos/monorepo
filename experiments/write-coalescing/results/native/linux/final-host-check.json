@@ -1,0 +1,33 @@
+{
+  "status": "pass",
+  "recorded_at": "2026-09-06T17:15:54.328011+00:00",
+  "binary_sha256_after_measurement": {
+    "vectored": "fa67bdd0cf6865960f2a6c0882b377eede137de2a2b5f4ff9750b9d05db27066",
+    "coalesce": "111790de76930221d7174d646036de56c93f309bee50c07a45e2d22c5b7d22e9",
+    "pool": "c5aa2a4ab605738d7075de6ecdfd395599375d735436d9c2828af9abee54c39c"
+  },
+  "benchmark_sources_match_manifest": true,
+  "backend_restored": true,
+  "cpu_mask": "4,5,6,7",
+  "governors": {
+    "4": "performance",
+    "5": "performance",
+    "6": "performance",
+    "7": "performance"
+  },
+  "shared_l3": {
+    "4": "4-7,12-15",
+    "5": "4-7,12-15",
+    "6": "4-7,12-15",
+    "7": "4-7,12-15"
+  },
+  "raid": {
+    "sync_action": "frozen",
+    "sync_completed": "none",
+    "degraded": "0",
+    "array_state": "clean"
+  },
+  "mdstat": "Personalities : [raid1] [raid0] [raid6] [raid5] [raid4] [raid10] \nmd1 : active raid1 nvme1n1p3[1] nvme0n1p4[0]\n      902550528 blocks super 1.2 [2/2] [UU]\n      \tresync=PENDING\n      bitmap: 6/7 pages [24KB], 65536KB chunk\n\nmd0 : active raid1 nvme1n1p2[1] nvme0n1p3[0]\n      523264 blocks super 1.2 [2/2] [UU]\n      \nunused devices: <none>\n",
+  "separate_profiles": 6,
+  "git_status": " M runtime/Cargo.toml\n?? experiments/\n?? runtime/src/storage/benches/coalescing.rs\n?? runtime/src/storage/benches/coalescing_checks.rs\n?? runtime/src/storage/benches/paged_coalescing.rs\n"
+}
